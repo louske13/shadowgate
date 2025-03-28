@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accès sécurisé</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        input {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 1rem;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            background-color: #38bdf8;
+            color: black;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Entrez votre mot de passe :</h1>
+    <form method="POST">
+        <input type="password" name="password" required />
+        <button type="submit">Valider</button>
+    </form>
+</body>
+</html>
