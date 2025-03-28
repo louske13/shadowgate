@@ -1,13 +1,12 @@
 
-from flask import Flask, request, redirect, render_template_string
+from flask import Flask, request, render_template_string
 import smtplib
-import requests
-import os
 from email.mime.text import MIMEText
+import requests
 
 app = Flask(__name__)
 
-HTML_TEMPLATE = """
+HTML_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -15,70 +14,72 @@ HTML_TEMPLATE = """
     <title>Shadowgate | Accès sécurisé</title>
     <style>
         body {
-            background-color: #11141b;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #1a1a1d;
+            color: #fff;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
             margin: 0;
         }
-        .container {
-            text-align: center;
+        h2 {
+            margin-bottom: 30px;
+            font-size: 28px;
         }
-        .form-box {
-            background-color: #1d212f;
+        .container {
+            background-color: #2e2e33;
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 0 20px #0096FF;
-            display: inline-block;
+            box-shadow: 0 0 15px rgba(0,255,255,0.3);
+            text-align: center;
         }
-        input[type="password"] {
-            padding: 10px;
+        input[type="password"], input[type="text"] {
+            padding: 12px;
+            font-size: 18px;
             border: none;
-            border-radius: 5px;
-            width: 200px;
-            margin-right: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            width: 100%;
+            text-align: center;
+            background-color: #444;
+            color: #fff;
         }
         button {
-            background-color: #0096FF;
+            background-color: #3399ff;
             color: white;
+            padding: 12px 24px;
             border: none;
-            padding: 10px 20px;
-            margin-top: 15px;
-            border-radius: 5px;
+            border-radius: 6px;
+            font-size: 18px;
             cursor: pointer;
-        }
-        .eye {
-            cursor: pointer;
-            position: absolute;
-            margin-left: -25px;
-            margin-top: 12px;
         }
         .error {
+            margin-top: 15px;
             color: red;
-            margin-top: 10px;
             font-weight: bold;
+        }
+        .eye {
+            position: absolute;
+            margin-left: -30px;
+            margin-top: 12px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="form-box">
-            <h2>Entrez votre mot de passe :</h2>
-            <form method="POST">
-                <div style="position: relative;">
-                    <input type="password" name="password" id="password" required>
-                    <span class="eye" onclick="togglePassword()">👁️</span>
-                </div>
-                <button type="submit">Valider</button>
-            </form>
+    <h2>Entrez votre mot de passe :</h2>
+    <form method="POST">
+        <div class="container">
+            <input type="password" name="password" id="password" required>
+            <span class="eye" onclick="togglePassword()">👁️</span><br>
+            <button type="submit">Valider</button>
             {% if error %}
                 <div class="error">{{ error }}</div>
             {% endif %}
         </div>
-    </div>
+    </form>
     <script>
         function togglePassword() {
             var x = document.getElementById("password");
@@ -91,54 +92,48 @@ HTML_TEMPLATE = """
     </script>
 </body>
 </html>
-"""
-
-EMAIL_SENDER = "mzo.fpa@gmail.com"
-EMAIL_RECEIVER = "alertimediate@gmail.com"
-EMAIL_PASSWORD = "jevt qvas vrpj bveo"
-
-API_TOKEN = "bf034895c48731"
+'''
 
 PASSWORD_ACTIONS = {
     "Ther@pi1": "⚠️ Agent captif volontaire – infiltré, opération assumée.",
-    "Ther@pi2": "⚠️ Agent captif, non hostile – coopération en cours.",
+    "Ther@pi2": "⚠️ Agent captif, non hostile – coopération.",
     "Ther@pi3": "⚠️ Agent captif, hostile – situation tendue.",
     "Ther@pi4": "⚠️ Agent repéré – détruisez tout.",
     "Ther@pi5": "⚠️ Agent repéré – FUYEZ IMMÉDIATEMENT.",
 }
 
+TO_EMAIL = "alertimediate@gmail.com"
+FROM_EMAIL = "mzo.fpa@gmail.com"
+APP_PASSWORD = "jevt qvas vrpj bveo"
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        password = request.form.get("password")
+        password = request.form["password"]
         if password in PASSWORD_ACTIONS:
-            ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
-            geo_data = requests.get(f"https://ipinfo.io/{ip}?token={API_TOKEN}").json()
-
-            location_info = (
-                f"IP: {ip}, "
-                f"City: {geo_data.get('city', 'None')}, "
-                f"Region: {geo_data.get('region', 'None')}, "
-                f"Country: {geo_data.get('country', 'None')}, "
-                f"ISP: {geo_data.get('org', 'None')}"
-            )
+            try:
+                ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+                geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
+                geo_data = geo_req.json()
+                loc_info = f"IP: {ip}, City: {geo_data.get('city')}, Region: {geo_data.get('region')}, Country: {geo_data.get('country')}, ISP: {geo_data.get('org')}"
+            except:
+                loc_info = "Géolocalisation non disponible"
 
             msg = MIMEText(f"{PASSWORD_ACTIONS[password]}
 
 📍 Localisation :
-{location_info}")
-            msg["Subject"] = "🚨 Alerte Shadowgate"
-            msg["From"] = EMAIL_SENDER
-            msg["To"] = EMAIL_RECEIVER
+{loc_info}")
+            msg["Subject"] = "⚠️ Alerte Shadowgate"
+            msg["From"] = FROM_EMAIL
+            msg["To"] = TO_EMAIL
 
             with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-                server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+                server.login(FROM_EMAIL, APP_PASSWORD)
                 server.send_message(msg)
 
-            return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
+            return render_template_string(HTML_TEMPLATE, error=None)
         else:
             return render_template_string(HTML_TEMPLATE, error="❌ Mot de passe incorrect.")
-
     return render_template_string(HTML_TEMPLATE, error=None)
 
 if __name__ == "__main__":
