@@ -1,6 +1,7 @@
 from flask import Flask, request, redirect, render_template_string
 import smtplib
 from email.mime.text import MIMEText
+import requests
 
 app = Flask(__name__)
 
@@ -70,8 +71,16 @@ SMTP_USER = "mzo.fpa@gmail.com"
 SMTP_PASS = "jevt qvas vrpj bveo"
 ALERT_EMAIL = "alertimediate@gmail.com"
 
-def send_alert(subject):
-    msg = MIMEText(subject)
+def get_geolocation():
+    try:
+        response = requests.get("https://ipinfo.io", timeout=5)
+        data = response.json()
+        return f"IP: {data.get('ip')}, City: {data.get('city')}, Region: {data.get('region')}, Country: {data.get('country')}, ISP: {data.get('org')}"
+    except Exception as e:
+        return "Localisation indisponible"
+
+def send_alert(subject, geoinfo):
+    msg = MIMEText(f"{subject}\n\n📍 Localisation :\n{geoinfo}")
     msg['Subject'] = "🔔 Alerte Shadowgate"
     msg['From'] = SMTP_USER
     msg['To'] = ALERT_EMAIL
@@ -91,7 +100,8 @@ def index():
         if pwd == "13007":
             return redirect(NOTION_LINK)
         elif pwd in EMAILS:
-            send_alert(EMAILS[pwd])
+            geoinfo = get_geolocation()
+            send_alert(EMAILS[pwd], geoinfo)
             return redirect(FAKE_MEDICAL_PAGE)
         else:
             return render_template_string(HTML_TEMPLATE, error="Mot de passe incorrect, veuillez réessayer.")
