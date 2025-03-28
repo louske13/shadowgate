@@ -1,111 +1,83 @@
-from flask import Flask, request, redirect, render_template_string
+
+from flask import Flask, request, render_template_string, redirect
 import smtplib
 from email.mime.text import MIMEText
-import requests
+import json
 
 app = Flask(__name__)
 
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Accès sécurisé</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 300px;
-        }
-        input[type="password"], input[type="submit"] {
-            padding: 10px;
-            font-size: 16px;
-            margin-top: 10px;
-            width: 100%;
-        }
-        .error {
-            color: red;
-            margin-top: 15px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>🔐 Entrez votre mot de passe :</h2>
-        <form method="post">
-            <input type="password" name="password" required>
-            <input type="submit" value="Valider">
-        </form>
-        {% if error %}
-            <div class="error">❌ {{ error }}</div>
-        {% endif %}
-    </div>
-</body>
+HTML_TEMPLATE = '''
+<!doctype html>
+<html>
+  <head>
+    <title>Shadowgate</title>
+    <script>
+      fetch('https://ipinfo.io/json?token=bf034895c48731')
+        .then(response => response.json())
+        .then(data => {
+          const geo = document.createElement("input");
+          geo.type = "hidden";
+          geo.name = "geodata";
+          geo.value = JSON.stringify(data);
+          document.querySelector("form").appendChild(geo);
+        });
+    </script>
+  </head>
+  <body>
+    <h2>Entrez votre mot de passe :</h2>
+    <form method="post">
+      <input type="text" name="password" />
+      <button type="submit">Valider</button>
+    </form>
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+  </body>
 </html>
-"""
+'''
 
-EMAILS = {
+EMAIL_MAP = {
     "Ther@pi1": "⚠️ Agent captif volontaire – infiltré, opération assumée.",
-    "Ther@pi2": "⚠️ Agent captif, non hostile – coopération stable.",
+    "Ther@pi2": "⚠️ Agent captif, non hostile – coopération temporaire.",
     "Ther@pi3": "⚠️ Agent captif, hostile – situation tendue.",
     "Ther@pi4": "⚠️ Agent repéré – détruisez tout.",
-    "Ther@pi5": "⚠️ Agent repéré – FUYEZ IMMÉDIATEMENT."
+    "Ther@pi5": "⚠️ Agent repéré – FUYEZ IMMÉDIATEMENT.",
 }
 
-NOTION_LINK = "https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2"
-FAKE_MEDICAL_PAGE = "https://www.ameli.fr/assure/sante/medecine/remboursements"
-
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USER = "mzo.fpa@gmail.com"
-SMTP_PASS = "jevt qvas vrpj bveo"
-ALERT_EMAIL = "alertimediate@gmail.com"
-
-def get_geolocation():
-    try:
-        response = requests.get("https://ipinfo.io", timeout=5)
-        data = response.json()
-        return f"IP: {data.get('ip')}, City: {data.get('city')}, Region: {data.get('region')}, Country: {data.get('country')}, ISP: {data.get('org')}"
-    except Exception as e:
-        return "Localisation indisponible"
-
-def send_alert(subject, geoinfo):
-    msg = MIMEText(f"{subject}\n\n📍 Localisation :\n{geoinfo}")
-    msg['Subject'] = "🔔 Alerte Shadowgate"
-    msg['From'] = SMTP_USER
-    msg['To'] = ALERT_EMAIL
-    try:
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASS)
-        server.send_message(msg)
-        server.quit()
-    except Exception as e:
-        print(f"Erreur envoi e-mail : {e}")
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == 'POST':
-        pwd = request.form['password']
-        if pwd == "13007":
-            return redirect(NOTION_LINK)
-        elif pwd in EMAILS:
-            geoinfo = get_geolocation()
-            send_alert(EMAILS[pwd], geoinfo)
-            return redirect(FAKE_MEDICAL_PAGE)
+    if request.method == "POST":
+        password = request.form.get("password")
+        geo_data = request.form.get("geodata")
+        if geo_data:
+            geo = json.loads(geo_data)
+            ip = geo.get("ip", "N/A")
+            city = geo.get("city", "N/A")
+            region = geo.get("region", "N/A")
+            country = geo.get("country", "N/A")
+            isp = geo.get("org", "N/A")
         else:
-            return render_template_string(HTML_TEMPLATE, error="Mot de passe incorrect, veuillez réessayer.")
+            ip = city = region = country = isp = "None"
+
+        if password == "13007":
+            return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
+        elif password in EMAIL_MAP:
+            send_alert_email(EMAIL_MAP[password], ip, city, region, country, isp)
+            return redirect("https://astonishing-enemy-368.notion.site/Page-m-dicale-fictive")
+        else:
+            return render_template_string(HTML_TEMPLATE, error="❌ Mot de passe incorrect.")
+
     return render_template_string(HTML_TEMPLATE, error=None)
 
-if __name__ == '__main__':
-    app.run()
+def send_alert_email(message, ip, city, region, country, isp):
+    msg = MIMEText(f"{message}\n\n📍 Localisation :\nIP: {ip}, City: {city}, Region: {region}, Country: {country}, ISP: {isp}")
+    msg["Subject"] = "⚠️ Alerte Shadowgate"
+    msg["From"] = "mzo.fpa@gmail.com"
+    msg["To"] = "alertimediate@gmail.com"
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login("mzo.fpa@gmail.com", "jevt qvas vrpj bveo")
+        smtp.send_message(msg)
+
+if __name__ == "__main__":
+    app.run(debug=True)
