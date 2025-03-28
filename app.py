@@ -119,9 +119,8 @@ def index():
             except:
                 loc_info = "Géolocalisation non disponible"
 
-msg = MIMEText(f"{PASSWORD_ACTIONS[password]}\n\n📍 Localisation :\nIP: {ip}, City: {city}, Region: {region}, Country: {country}, ISP: {org}")
+msg = MIMEText(f"{PASSWORD_ACTIONS[password]}\n\nLocalisation :\nIP: {ip}, City: {city}, Region: {region}, Country: {country}, ISP: {org}")
 
-📍 Localisation :
 {loc_info}")
             msg["Subject"] = "⚠️ Alerte Shadowgate"
             msg["From"] = FROM_EMAIL
