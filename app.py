@@ -119,7 +119,7 @@ def index():
             except:
                 loc_info = "Géolocalisation non disponible"
 
-            msg = MIMEText(f"{PASSWORD_ACTIONS[password]}
+msg = MIMEText(f"{PASSWORD_ACTIONS[password]}\n\n📍 Localisation :\nIP: {ip}, City: {city}, Region: {region}, Country: {country}, ISP: {org}")
 
 📍 Localisation :
 {loc_info}")
