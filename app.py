@@ -11,31 +11,31 @@ HTML_TEMPLATE = """
     <meta charset="UTF-8">
     <title>Accès sécurisé</title>
     <style>
-        body {{
+        body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-        }}
-        .container {{
+        }
+        .container {
             background-color: white;
             padding: 40px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             width: 300px;
-        }}
-        input[type="password"], input[type="submit"] {{
+        }
+        input[type="password"], input[type="submit"] {
             padding: 10px;
             font-size: 16px;
             margin-top: 10px;
             width: 100%;
-        }}
-        .error {{
+        }
+        .error {
             color: red;
             margin-top: 15px;
-        }}
+        }
     </style>
 </head>
 <body>
@@ -95,7 +95,6 @@ def index():
             return redirect(FAKE_MEDICAL_PAGE)
         else:
             return render_template_string(HTML_TEMPLATE, error="Mot de passe incorrect, veuillez réessayer.")
-
     return render_template_string(HTML_TEMPLATE, error=None)
 
 if __name__ == '__main__':
