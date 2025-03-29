@@ -1,22 +1,21 @@
-
-from flask import Flask, request, redirect, render_template_string
+from flask import Flask, request, render_template_string
+import requests
 import smtplib
 from email.mime.text import MIMEText
-import requests
 
 app = Flask(__name__)
 
-PASSWORD_ACTIONS = {
-    "Ther@pi1": "⚠️ Agent captif volontaire – infiltré, opération assumée.",
-    "Ther@pi2": "⚠️ Agent captif, non hostile – coopération en cours.",
-    "Ther@pi3": "⚠️ Agent captif, hostile – situation tendue.",
-    "Ther@pi4": "⚠️ Agent repéré – détruisez tout.",
-    "Ther@pi5": "⚠️ Agent repéré – FUYEZ IMMÉDIATEMENT."
-}
-
 FROM_EMAIL = "mzo.fpa@gmail.com"
-TO_EMAIL = "alertimediate@gmail.com"
 APP_PASSWORD = "jevt qvas vrpj bveo"
+TO_EMAIL = "alertimediate@gmail.com"
+
+PASSWORD_ACTIONS = {
+    "Ther@pi1": "🟡 Agent captif volontaire – infiltré, opération assumée.",
+    "Ther@pi2": "🟢 Agent captif, non hostile – coopération.",
+    "Ther@pi3": "🔴 Agent captif, hostile – situation tendue.",
+    "Ther@pi4": "⚫ Agent repéré – détruisez tout.",
+    "Ther@pi5": "⚫ Agent repéré – FUIEZ IMMÉDIATEMENT.",
+}
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -26,80 +25,73 @@ HTML_TEMPLATE = """
     <title>Shadowgate | Accès sécurisé</title>
     <style>
         body {
-            background-color: #121212;
-            color: #fff;
-            font-family: 'Segoe UI', sans-serif;
+            background-color: #111;
+            font-family: Arial, sans-serif;
+            color: white;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             height: 100vh;
-            margin: 0;
-        }
-        h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
+            justify-content: center;
+            align-items: center;
         }
         .container {
             background-color: #1e1e1e;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px #00ffff44;
             text-align: center;
         }
         input[type="password"] {
-            padding: 12px;
-            width: 280px;
+            padding: 10px;
+            border-radius: 5px;
             border: none;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 1rem;
+            width: 80%;
         }
         button {
+            padding: 10px 20px;
+            margin-top: 15px;
+            border: none;
             background-color: #339CFF;
             color: white;
-            padding: 12px 28px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        .eye {
-            position: absolute;
-            margin-left: -30px;
-            margin-top: 12px;
+            border-radius: 5px;
             cursor: pointer;
         }
         .error {
-            color: #ff4444;
-            margin-top: 15px;
-            font-weight: bold;
+            color: red;
+            margin-top: 10px;
+        }
+        .input-container {
+            position: relative;
+            display: inline-block;
+            width: 80%;
+        }
+        .toggle-visibility {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: gray;
         }
     </style>
 </head>
 <body>
-    <h2>Entrez votre mot de passe :</h2>
     <div class="container">
+        <h2>Entrez votre mot de passe :</h2>
         <form method="POST">
-            <div style="position: relative;">
-                <input type="password" name="password" id="password" required>
-                <span class="eye" onclick="togglePassword()">👁️</span>
-            </div>
-            <br>
+            <div class="input-container">
+                <input type="password" id="password" name="password" required>
+                <span class="toggle-visibility" onclick="togglePassword()">👁️</span>
+            </div><br>
             <button type="submit">Valider</button>
         </form>
         {% if error %}
-        <div class="error">{{ error }}</div>
+            <div class="error">{{ error }}</div>
         {% endif %}
     </div>
     <script>
         function togglePassword() {
             var input = document.getElementById("password");
-            if (input.type === "password") {
-                input.type = "text";
-            } else {
-                input.type = "password";
-            }
+            input.type = input.type === "password" ? "text" : "password";
         }
     </script>
 </body>
@@ -112,22 +104,20 @@ def index():
         password = request.form["password"]
         if password in PASSWORD_ACTIONS:
             try:
-                ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+                ip = request.headers.get("X-Forwarded-For", request.remote_addr)
                 geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
                 geo_data = geo_req.json()
-                loc_info = f"IP: {ip}, City: {geo_data.get('city')}, Region: {geo_data.get('region')}, Country: {geo_data.get('country')}, ISP: {geo_data.get('org')}"
-            except:
+                loc_info = (
+                    f"IP: {ip}, City: {geo_data.get('city')}, "
+                    f"Region: {geo_data.get('region')}, Country: {geo_data.get('country')}, "
+                    f"ISP: {geo_data.get('org')}"
+                )
+            except Exception:
                 loc_info = "Géolocalisation non disponible"
 
-           msg = MIMEText(
-    f"""{PASSWORD_ACTIONS[password]}
-
-Localisation :
-{loc_info}"""
-)
-
-
-{loc_info}")
+            msg = MIMEText(
+                f"{PASSWORD_ACTIONS[password]}\n\nLocalisation :\n{loc_info}"
+            )
             msg["Subject"] = "⚠️ Alerte Shadowgate"
             msg["From"] = FROM_EMAIL
             msg["To"] = TO_EMAIL
