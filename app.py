@@ -17,6 +17,17 @@ PASSWORD_ACTIONS = {
     "Ther@pi5": "⚫ Situation critique, intervention immédiate requise"
 }
 
+<script>
+function togglePassword() {
+    var x = document.getElementById("password");
+    if (x.type === "password") {
+        x.type = "text";
+    } else {
+        x.type = "password";
+    }
+}
+</script>
+
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="fr">
