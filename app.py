@@ -1,12 +1,24 @@
 
-from flask import Flask, request, render_template_string
+from flask import Flask, request, redirect, render_template_string
 import smtplib
 from email.mime.text import MIMEText
 import requests
 
 app = Flask(__name__)
 
-HTML_TEMPLATE = '''
+PASSWORD_ACTIONS = {
+    "Ther@pi1": "⚠️ Agent captif volontaire – infiltré, opération assumée.",
+    "Ther@pi2": "⚠️ Agent captif, non hostile – coopération en cours.",
+    "Ther@pi3": "⚠️ Agent captif, hostile – situation tendue.",
+    "Ther@pi4": "⚠️ Agent repéré – détruisez tout.",
+    "Ther@pi5": "⚠️ Agent repéré – FUYEZ IMMÉDIATEMENT."
+}
+
+FROM_EMAIL = "mzo.fpa@gmail.com"
+TO_EMAIL = "alertimediate@gmail.com"
+APP_PASSWORD = "jevt qvas vrpj bveo"
+
+HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -14,9 +26,9 @@ HTML_TEMPLATE = '''
     <title>Shadowgate | Accès sécurisé</title>
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #1a1a1d;
+            background-color: #121212;
             color: #fff;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -25,40 +37,32 @@ HTML_TEMPLATE = '''
             margin: 0;
         }
         h2 {
-            margin-bottom: 30px;
-            font-size: 28px;
+            font-size: 2rem;
+            margin-bottom: 20px;
         }
         .container {
-            background-color: #2e2e33;
+            background-color: #1e1e1e;
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 0 15px rgba(0,255,255,0.3);
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
             text-align: center;
         }
-        input[type="password"], input[type="text"] {
+        input[type="password"] {
             padding: 12px;
-            font-size: 18px;
+            width: 280px;
             border: none;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            width: 100%;
-            text-align: center;
-            background-color: #444;
-            color: #fff;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1rem;
         }
         button {
-            background-color: #3399ff;
+            background-color: #339CFF;
             color: white;
-            padding: 12px 24px;
+            padding: 12px 28px;
             border: none;
-            border-radius: 6px;
-            font-size: 18px;
+            border-radius: 8px;
+            font-size: 1rem;
             cursor: pointer;
-        }
-        .error {
-            margin-top: 15px;
-            color: red;
-            font-weight: bold;
         }
         .eye {
             position: absolute;
@@ -66,45 +70,41 @@ HTML_TEMPLATE = '''
             margin-top: 12px;
             cursor: pointer;
         }
+        .error {
+            color: #ff4444;
+            margin-top: 15px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <h2>Entrez votre mot de passe :</h2>
-    <form method="POST">
-        <div class="container">
-            <input type="password" name="password" id="password" required>
-            <span class="eye" onclick="togglePassword()">👁️</span><br>
+    <div class="container">
+        <form method="POST">
+            <div style="position: relative;">
+                <input type="password" name="password" id="password" required>
+                <span class="eye" onclick="togglePassword()">👁️</span>
+            </div>
+            <br>
             <button type="submit">Valider</button>
-            {% if error %}
-                <div class="error">{{ error }}</div>
-            {% endif %}
-        </div>
-    </form>
+        </form>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+    </div>
     <script>
         function togglePassword() {
-            var x = document.getElementById("password");
-            if (x.type === "password") {
-                x.type = "text";
+            var input = document.getElementById("password");
+            if (input.type === "password") {
+                input.type = "text";
             } else {
-                x.type = "password";
+                input.type = "password";
             }
         }
     </script>
 </body>
 </html>
-'''
-
-PASSWORD_ACTIONS = {
-    "Ther@pi1": "⚠️ Agent captif volontaire – infiltré, opération assumée.",
-    "Ther@pi2": "⚠️ Agent captif, non hostile – coopération.",
-    "Ther@pi3": "⚠️ Agent captif, hostile – situation tendue.",
-    "Ther@pi4": "⚠️ Agent repéré – détruisez tout.",
-    "Ther@pi5": "⚠️ Agent repéré – FUYEZ IMMÉDIATEMENT.",
-}
-
-TO_EMAIL = "alertimediate@gmail.com"
-FROM_EMAIL = "mzo.fpa@gmail.com"
-APP_PASSWORD = "jevt qvas vrpj bveo"
+"""
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -119,7 +119,7 @@ def index():
             except:
                 loc_info = "Géolocalisation non disponible"
 
-msg = MIMEText(f"{PASSWORD_ACTIONS[password]}\n\n{loc_info}")
+            msg = MIMEText(f"{PASSWORD_ACTIONS[password]}
 
 {loc_info}")
             msg["Subject"] = "⚠️ Alerte Shadowgate"
