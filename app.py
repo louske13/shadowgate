@@ -1,7 +1,8 @@
-from flask import Flask, request, redirect, render_template_string
+from flask import Flask, request, render_template_string, redirect, render_template
 import requests
 import smtplib
 from email.mime.text import MIMEText
+import os
 
 app = Flask(__name__)
 
@@ -17,122 +18,75 @@ PASSWORD_ACTIONS = {
     "Ther@pi5": "⚫ Situation critique, intervention immédiate requise"
 }
 
-
+# HTML simple avec mot de passe masqué + œil
 HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Accès sécurisé</title>
+    <title>Shadowgate</title>
     <style>
-        body {
-            background-color: #f2f2f2;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        h2 {
-            color: #333;
-        }
-        form {
-            background-color: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        input[type="password"] {
-            padding: 10px;
-            margin-right: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            padding: 10px 15px;
-            border: none;
-            background-color: #444;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .error {
-            color: red;
-            margin-top: 15px;
-        }
+        body { font-family: Arial; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        input[type="password"] { padding: 10px; font-size: 16px; }
+        button, .eye { padding: 10px; font-size: 16px; margin-left: 5px; }
+        form { display: flex; align-items: center; }
     </style>
 </head>
 <body>
+    <h2>Entrez votre code</h2>
     <form method="POST">
-        <h2>🔐 Veuillez entrer le mot de passe</h2>
         <input type="password" id="password" name="password" required>
-        <button type="button" onclick="togglePassword()">👁️</button>
-        <br><br>
         <button type="submit">Valider</button>
-        {% if error %}
-            <div class="error">{{ error }}</div>
-        {% endif %}
+        <span class="eye" onclick="togglePassword()" style="cursor:pointer;">👁️</span>
     </form>
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
     <script>
         function togglePassword() {
             var x = document.getElementById("password");
-            if (x.type === "password") {
-                x.type = "text";
-            } else {
-                x.type = "password";
-            }
+            x.type = (x.type === "password") ? "text" : "password";
         }
     </script>
 </body>
 </html>
 """
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        password = request.form["password"]
+        password = request.form.get("password")
 
-        if password == "13007":
+        if password == VALID_PASSWORD:
             return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
 
-        elif password in PASSWORD_ACTIONS:
+        elif password in ALERT_PASSWORDS:
             try:
                 ip = request.headers.get('X-Forwarded-For', request.remote_addr)
                 geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
                 geo_data = geo_req.json()
-
-                loc = geo_data.get('loc', '')
-                city = geo_data.get('city', 'N/A')
-                region = geo_data.get('region', 'N/A')
-                country = geo_data.get('country', 'N/A')
-                org = geo_data.get('org', 'N/A')
-
-                lat, lon = loc.split(',') if loc else ("", "")
-                gmap_link = f"https://www.google.com/maps?q={lat},{lon}"
-
                 loc_info = (
                     f"IP: {ip}\n"
-                    f"Ville: {city}\nRégion: {region}\nPays: {country}\nFAI: {org}\n"
-                    f"Lien Google Maps: {gmap_link}"
+                    f"Ville: {geo_data.get('city')}, Région: {geo_data.get('region')}, Pays: {geo_data.get('country')}\n"
+                    f"Coordonnées: {geo_data.get('loc')}\n"
+                    f"Fournisseur: {geo_data.get('org')}"
                 )
-            except:
-                loc_info = "Géolocalisation indisponible."
+                lat, lon = geo_data.get("loc", "0,0").split(",")
+                gmap_link = f"https://www.google.com/maps?q={lat},{lon}"
+            except Exception:
+                loc_info = "Géolocalisation non disponible"
+                gmap_link = ""
 
-            message = f"{PASSWORD_ACTIONS[password]}\n\n{loc_info}"
-            msg = MIMEText(message)
-            msg["Subject"] = "Alerte Shadowgate"
+            msg_content = f"{ALERT_PASSWORDS[password]}\n\n{loc_info}\n\nLien Google Maps : {gmap_link}"
+            msg = MIMEText(msg_content)
+            msg["Subject"] = "🛑 Alerte Shadowgate"
             msg["From"] = FROM_EMAIL
             msg["To"] = TO_EMAIL
 
-            try:
-                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-                    server.login(FROM_EMAIL, APP_PASSWORD)
-                    server.send_message(msg)
-            except Exception as e:
-                print("Erreur envoi email:", e)
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                server.login(FROM_EMAIL, APP_PASSWORD)
+                server.send_message(msg)
 
-            return redirect("https://example.com/fake-page")  # À remplacer si tu veux une vraie page factice
+            return render_template("biotrace.html")  # redirige vers la fausse page médicale
 
         else:
             return render_template_string(HTML_TEMPLATE, error="❌ Mot de passe incorrect.")
@@ -141,3 +95,4 @@ def index():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
