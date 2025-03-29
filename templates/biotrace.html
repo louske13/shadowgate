@@ -1,96 +1,44 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Biotrace Labs – Résultats Patient</title>
-    <style>
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #f4f6fa;
-            margin: 0;
-            padding: 20px;
-        }
-        .report {
-            background-color: white;
-            max-width: 800px;
-            margin: auto;
-            padding: 40px;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
-        }
-        h1, h2 {
-            color: #1c2e4a;
-        }
-        .section {
-            margin-top: 40px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
-        th {
-            background-color: #e6f0ff;
-            text-align: left;
-        }
-        .alert {
-            background-color: #ffe6e6;
-        }
-        .metadata {
-            margin-bottom: 30px;
-        }
-        .metadata p {
-            margin: 5px 0;
-        }
-    </style>
+    <title>Biotrace Labs - Résultats Patient</title>
+    <link rel="stylesheet" href="/static/biotrace.css">
 </head>
 <body>
-    <div class="report">
-        <h1>Biotrace Labs</h1>
-        <div class="metadata">
-            <p><strong>Identifiant patient :</strong> X73P9–22BAQ–001</p>
-            <p><strong>Date :</strong> 29/03/2025 – 07:08:32 UTC</p>
-        </div>
-
-        <div class="section">
-            <h2>Hématologie</h2>
-            <table>
-                <tr><th>Paramètre</th><th>Valeur</th><th>Référence</th></tr>
-                <tr><td>Hémoglobine</td><td>13.4 g/dL</td><td>13.5 – 17.5</td></tr>
-                <tr><td>Hématocrite</td><td>39.8%</td><td>40 – 50%</td></tr>
-                <tr><td>Globules rouges</td><td>4.52 M/µL</td><td>4.7 – 6.1</td></tr>
-                <tr class="alert"><td>Globules blancs</td><td>11.8 K/µL</td><td>4 – 10</td></tr>
-                <tr><td>Plaquettes</td><td>237 K/µL</td><td>150 – 450</td></tr>
-            </table>
-        </div>
-
-        <div class="section">
-            <h2>Biochimie</h2>
-            <table>
-                <tr><th>Paramètre</th><th>Résultat</th><th>Référence</th></tr>
-                <tr><td>Glucose</td><td>89 mg/dL</td><td>70 – 99</td></tr>
-                <tr><td>Créatinine</td><td>1.03 mg/dL</td><td>0.7 – 1.3</td></tr>
-                <tr><td>ALT (GPT)</td><td>42 U/L</td><td>&lt; 55</td></tr>
-                <tr class="alert"><td>LDH</td><td>290 U/L</td><td>135 – 225</td></tr>
-                <tr><td>ASAT</td><td>31 U/L</td><td>&lt; 40</td></tr>
-            </table>
-        </div>
-
-        <div class="section">
-            <h2>Infections Sexuellement Transmissibles (MST)</h2>
-            <table>
-                <tr><th>Test</th><th>Résultat</th><th>Référence</th></tr>
-                <tr><td>HIV 1/2 Ag/Ab Combo</td><td>Négatif</td><td>Négatif</td></tr>
-                <tr><td>Syphilis TPHA/VDRL</td><td>Positif faiblement</td><td>Négatif</td></tr>
-                <tr><td>Chlamydia PCR</td><td>Négatif</td><td>Négatif</td></tr>
-                <tr class="alert"><td>Gonorrhée PCR</td><td>Détection ADN</td><td>Négatif</td></tr>
-                <tr><td>Hépatite B - HBsAg</td><td>Négatif</td><td>Négatif</td></tr>
-                <tr><td>Hépatite C - Ac anti-VHC</td><td>Négatif</td><td>Négatif</td></tr>
-            </table>
-        </div>
+    <div class="container">
+        <img src="/static/logo.png" alt="Biotrace Labs" class="logo">
+        <h1>Résultats d’analyse - Biotrace Labs</h1>
+        <p class="id">ID Patient : BTX-9F72Q3A1</p>
+        <p>Date de prélèvement : 25/03/2025 - 08:42</p>
+        <hr>
+        <h2>Marqueurs immunitaires</h2>
+        <ul>
+            <li>CRP (Protéine C réactive) : 2.3 mg/L</li>
+            <li>Anticorps ANA : 1:80 (positif faible)</li>
+            <li>Facteur rhumatoïde : 10 UI/mL</li>
+        </ul>
+        <h2>Tests MST</h2>
+        <ul>
+            <li>VIH 1 & 2 : Négatif</li>
+            <li>Syphilis : Négatif</li>
+            <li>Chlamydia : Négatif</li>
+            <li>Gonorrhée : Négatif</li>
+            <li>Hépatite B : Négatif</li>
+            <li>Hépatite C : Négatif</li>
+        </ul>
+        <h2>Autres paramètres</h2>
+        <ul>
+            <li>Glycémie à jeun : 0.91 g/L</li>
+            <li>Hémoglobine : 14.2 g/dL</li>
+            <li>Créatinine : 8.4 mg/L</li>
+        </ul>
+        <hr>
+        <p class="commentaire">
+            <strong>Commentaire médical :</strong><br>
+            Absence de marqueurs inquiétants détectés. Suivi recommandé pour suspicion de pathologie auto-immune légère. Aucun signe infectieux actif à ce jour.
+        </p>
     </div>
 </body>
 </html>

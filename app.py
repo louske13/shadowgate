@@ -1,4 +1,5 @@
-from flask import Flask, request, redirect, render_template, render_template_string
+
+from flask import Flask, request, redirect, render_template_string, render_template
 import requests
 import smtplib
 from email.mime.text import MIMEText
@@ -19,9 +20,9 @@ PASSWORD_ACTIONS = {
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="fr">
+<html lang='fr'>
 <head>
-    <meta charset="UTF-8">
+    <meta charset='UTF-8'>
     <title>Accès sécurisé</title>
     <style>
         body {
@@ -33,9 +34,6 @@ HTML_TEMPLATE = """
             justify-content: center;
             height: 100vh;
         }
-        h2 {
-            color: #333;
-        }
         form {
             background-color: white;
             padding: 40px;
@@ -43,7 +41,7 @@ HTML_TEMPLATE = """
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
-        input[type="password"] {
+        input[type='password'] {
             padding: 10px;
             margin-right: 10px;
             border-radius: 5px;
@@ -64,79 +62,88 @@ HTML_TEMPLATE = """
     </style>
 </head>
 <body>
-    <form method="POST">
+    <form method='POST'>
         <h2>🔐 Veuillez entrer le mot de passe</h2>
-        <input type="password" id="password" name="password" required>
-        <button type="button" onclick="togglePassword()">👁️</button>
+        <input type='password' id='password' name='password' required>
+        <button type='button' onclick='togglePassword()'>👁️</button>
         <br><br>
-        <button type="submit">Valider</button>
+        <button type='submit'>Valider</button>
         {% if error %}
-            <div class="error">{{ error }}</div>
+            <div class='error'>{{ error }}</div>
         {% endif %}
     </form>
     <script>
         function togglePassword() {
-            var x = document.getElementById("password");
-            if (x.type === "password") {
-                x.type = "text";
+            var x = document.getElementById('password');
+            if (x.type === 'password') {
+                x.type = 'text';
             } else {
-                x.type = "password";
+                x.type = 'password';
             }
         }
     </script>
 </body>
 </html>
 """
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         password = request.form["password"]
 
         if password == "13007":
+            send_alert("Consultation réelle des données")
             return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
 
         elif password in PASSWORD_ACTIONS:
-            try:
-                ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-                geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
-                geo_data = geo_req.json()
-
-                loc = geo_data.get('loc', '')
-                city = geo_data.get('city', 'N/A')
-                region = geo_data.get('region', 'N/A')
-                country = geo_data.get('country', 'N/A')
-                org = geo_data.get('org', 'N/A')
-
-                lat, lon = loc.split(',') if loc else ("", "")
-                gmap_link = f"https://www.google.com/maps?q={lat},{lon}"
-
-                loc_info = (
-                    f"IP: {ip}\n"
-                    f"Ville: {city}\nRégion: {region}\nPays: {country}\nFAI: {org}\n"
-                    f"Lien Google Maps: {gmap_link}"
-                )
-            except:
-                loc_info = "Géolocalisation indisponible."
-
-            message = f"{PASSWORD_ACTIONS[password]}\n\n{loc_info}"
-            msg = MIMEText(message)
-            msg["Subject"] = "Alerte Shadowgate"
-            msg["From"] = FROM_EMAIL
-            msg["To"] = TO_EMAIL
-
-            try:
-                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-                    server.login(FROM_EMAIL, APP_PASSWORD)
-                    server.send_message(msg)
-            except Exception as e:
-                print("Erreur envoi email:", e)
-
-            return render_template("biotrace.html")  # À remplacer si tu veux une vraie page factice
+            message = generate_geo_message(PASSWORD_ACTIONS[password])
+            send_email("Alerte Shadowgate", message)
+            return render_template("biotrace.html")
 
         else:
             return render_template_string(HTML_TEMPLATE, error="❌ Mot de passe incorrect.")
-
     return render_template_string(HTML_TEMPLATE, error=None)
+
+def generate_geo_message(status):
+    try:
+        ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
+        geo_data = geo_req.json()
+        loc = geo_data.get('loc', '')
+        city = geo_data.get('city', 'N/A')
+        region = geo_data.get('region', 'N/A')
+        country = geo_data.get('country', 'N/A')
+        org = geo_data.get('org', 'N/A')
+        lat, lon = loc.split(',') if loc else ("", "")
+        gmap_link = f"https://www.google.com/maps?q={lat},{lon}"
+        loc_info = f"IP: {ip}\nVille: {city}\nRégion: {region}\nPays: {country}\nFAI: {org}\nGoogle Maps: {gmap_link}"
+    except:
+        loc_info = "Géolocalisation indisponible."
+    return f"{status}\n\n{loc_info}"
+
+def send_alert(subject):
+    msg = MIMEText("Code flashé ou consultation réelle détectée.")
+    msg["Subject"] = subject
+    msg["From"] = FROM_EMAIL
+    msg["To"] = TO_EMAIL
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(FROM_EMAIL, APP_PASSWORD)
+            server.send_message(msg)
+    except Exception as e:
+        print("Erreur envoi mail:", e)
+
+def send_email(subject, content):
+    msg = MIMEText(content)
+    msg["Subject"] = subject
+    msg["From"] = FROM_EMAIL
+    msg["To"] = TO_EMAIL
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(FROM_EMAIL, APP_PASSWORD)
+            server.send_message(msg)
+    except Exception as e:
+        print("Erreur email:", e)
 
 if __name__ == "__main__":
     app.run(debug=True)
