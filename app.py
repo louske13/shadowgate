@@ -99,25 +99,24 @@ def index():
     if request.method == "POST":
         password = request.form["password"]
         if password in PASSWORD_ACTIONS:
-            try:
-                ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-                geo_req = requests.get(f"https://ipinfo.io/{ip}?token={IPINFO_TOKEN}")
-                geo_data = geo_req.json()
-                loc = geo_data.get("loc", "N/A").split(",")
-                lat, lon = loc if len(loc) == 2 else ("N/A", "N/A")
-               gmap_link = f"https://www.google.com/maps?q={lat},{lon}"
-loc_info = (
-    f"IP : {ip}\n"
-    f"Ville : {geo_data.get('city', 'Inconnue')}\n"
-    f"Région : {geo_data.get('region', 'Inconnue')}\n"
-    f"Pays : {geo_data.get('country', 'Inconnu')}\n"
-    f"Latitude : {lat}, Longitude : {lon}\n"
-    f"Fournisseur : {geo_data.get('org', 'Inconnu')}\n"
-    f"📍 Google Maps : {gmap_link}"
-)
+           try:
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
+    geo_data = geo_req.json()
+    loc = geo_data.get('loc', '0,0')
+    lat, lon = loc.split(',')
 
-            except:
-                loc_info = "Localisation indisponible."
+    gmap_link = f"https://www.google.com/maps?q={lat},{lon}"
+    loc_info = (
+        f"IP: {ip}\n"
+        f"City: {geo_data.get('city')}\n"
+        f"Region: {geo_data.get('region')}\n"
+        f"Country: {geo_data.get('country')}\n"
+        f"ISP: {geo_data.get('org')}\n"
+        f"Google Maps: {gmap_link}"
+    )
+except Exception as e:
+    loc_info = f"Géolocalisation non disponible ({str(e)})"
 
             msg = MIMEText(f"{PASSWORD_ACTIONS[password]}\n\n📍 Localisation :\n{loc_info}")
             msg["Subject"] = "⚠️ Alerte Shadowgate"
