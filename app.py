@@ -105,14 +105,17 @@ def index():
                 geo_data = geo_req.json()
                 loc = geo_data.get("loc", "N/A").split(",")
                 lat, lon = loc if len(loc) == 2 else ("N/A", "N/A")
-                loc_info = (
-                    f"IP : {ip}\n"
-                    f"Ville : {geo_data.get('city', 'Inconnue')}\n"
-                    f"Région : {geo_data.get('region', 'Inconnue')}\n"
-                    f"Pays : {geo_data.get('country', 'Inconnu')}\n"
-                    f"Latitude : {lat}, Longitude : {lon}\n"
-                    f"Fournisseur : {geo_data.get('org', 'Inconnu')}"
-                )
+               gmap_link = f"https://www.google.com/maps?q={lat},{lon}"
+loc_info = (
+    f"IP : {ip}\n"
+    f"Ville : {geo_data.get('city', 'Inconnue')}\n"
+    f"Région : {geo_data.get('region', 'Inconnue')}\n"
+    f"Pays : {geo_data.get('country', 'Inconnu')}\n"
+    f"Latitude : {lat}, Longitude : {lon}\n"
+    f"Fournisseur : {geo_data.get('org', 'Inconnu')}\n"
+    f"📍 Google Maps : {gmap_link}"
+)
+
             except:
                 loc_info = "Localisation indisponible."
 
