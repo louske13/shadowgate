@@ -17,46 +17,77 @@ PASSWORD_ACTIONS = {
     "Ther@pi5": "⚫ Situation critique, intervention immédiate requise"
 }
 
-<script>
-function togglePassword() {
-    var x = document.getElementById("password");
-    if (x.type === "password") {
-        x.type = "text";
-    } else {
-        x.type = "password";
-    }
-}
-</script>
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Shadowgate</title>
+    <title>Accès sécurisé</title>
     <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
-        .container { text-align: center; }
-        input[type="text"] { padding: 8px; font-size: 16px; width: 200px; }
-        button { padding: 8px 16px; font-size: 16px; }
-        .error { color: red; margin-top: 10px; }
+        body {
+            background-color: #f2f2f2;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        input[type="password"] {
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #444;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .error {
+            color: red;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Entrez votre code</h2>
-        <form method="POST">
-            <input type="text" name="password" placeholder="Mot de passe" required>
-            <button type="submit">Valider</button>
-        </form>
+    <form method="POST">
+        <h2>🔐 Veuillez entrer le mot de passe</h2>
+        <input type="password" id="password" name="password" required>
+        <button type="button" onclick="togglePassword()">👁️</button>
+        <br><br>
+        <button type="submit">Valider</button>
         {% if error %}
             <div class="error">{{ error }}</div>
         {% endif %}
-    </div>
+    </form>
+    <script>
+        function togglePassword() {
+            var x = document.getElementById("password");
+            if (x.type === "password") {
+                x.type = "text";
+            } else {
+                x.type = "password";
+            }
+        }
+    </script>
 </body>
 </html>
 """
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
