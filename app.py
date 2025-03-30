@@ -1,7 +1,9 @@
-from flask import Flask, request, redirect, render_template, jsonify
-import requests
+from flask import Flask, render_template, request, redirect
+from datetime import datetime
 import smtplib
+import requests
 from email.mime.text import MIMEText
+import json
 
 app = Flask(__name__)
 
@@ -17,120 +19,85 @@ PASSWORD_ACTIONS = {
     "Ther@pi5": "⚫ Situation critique, intervention immédiate requise"
 }
 
+def send_email(subject, body):
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = FROM_EMAIL
+    msg["To"] = TO_EMAIL
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(FROM_EMAIL, APP_PASSWORD)
+            server.send_message(msg)
+    except Exception as e:
+        print(f"[EMAIL ERROR] {e}")
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     error = None
+    lat_form = request.form.get("lat", "")
+    lon_form = request.form.get("lon", "")
+    gps_ok = lat_form and lon_form
+
     if request.method == "POST":
         password = request.form.get("password")
-        lat_form = request.form.get("lat", "")
-        lon_form = request.form.get("lon", "")
-        gps_ok = lat_form and lon_form
 
-        # Get IP fallback
-        ip_raw = request.headers.get('X-Forwarded-For', request.remote_addr)
-        ip = ip_raw.split(',')[0].strip()
-
-        geo = {}
-        lat_ip, lon_ip, city, region, country, org = ("", "", "", "", "", "")
-        try:
-            geo = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731").json()
-            loc = geo.get("loc", "")
-            lat_ip, lon_ip = loc.split(',') if loc else ("", "")
-            city = geo.get("city", "N/A")
-            region = geo.get("region", "N/A")
-            country = geo.get("country", "N/A")
-            org = geo.get("org", "N/A")
-        except:
-            pass
-
-        if gps_ok:
-            lat, lon = lat_form, lon_form
-            method = "✅ Coordonnées GPS confirmées par l'utilisateur"
-        else:
-            lat, lon = lat_ip, lon_ip
-            method = "❌ Coordonnées estimées via IP / FAI"
-
-        gmap = f"https://www.google.com/maps?q={lat},{lon}&z=18"
-
-        # CODE 13007
         if password == "13007":
-            subject = "Coordonnées consultées – Code 13007"
-            body = (
-                f"📌 Code 13007 consulté\n"
-                f"{method}\n"
-                f"IP : {ip}\n"
-                f"Ville : {city}, {region}, {country}\n"
-                f"FAI : {org}\n"
-                f"Coordonnées : {lat}, {lon}\n"
-                f"Lien : {gmap}"
-            )
-            try:
-                msg = MIMEText(body)
-                msg["Subject"] = subject
-                msg["From"] = FROM_EMAIL
-                msg["To"] = TO_EMAIL
-
-                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-                    server.login(FROM_EMAIL, APP_PASSWORD)
-                    server.send_message(msg)
-            except Exception as e:
-                print("Erreur email 13007 :", e)
-
+            # Envoi mail coordonnées si GPS ou IP
+            location_info = get_location_info(request, lat_form, lon_form)
+            send_email("📍 Coordonnées consultées – Code 13007", location_info)
             return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
 
-        # CODES THER@PIX
         elif password in PASSWORD_ACTIONS:
-            subject = "Alerte Shadowgate"
-            body = (
-                f"{PASSWORD_ACTIONS[password]}\n\n"
-                f"{method}\n"
-                f"IP : {ip}\n"
-                f"Ville : {city}, {region}, {country}\n"
-                f"FAI : {org}\n"
-                f"Coordonnées : {lat}, {lon}\n"
-                f"Lien : {gmap}"
-            )
-            try:
-                msg = MIMEText(body)
-                msg["Subject"] = subject
-                msg["From"] = FROM_EMAIL
-                msg["To"] = TO_EMAIL
-
-                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-                    server.login(FROM_EMAIL, APP_PASSWORD)
-                    server.send_message(msg)
-            except Exception as e:
-                print("Erreur alerte Ther@piX :", e)
-
-            return render_template("biotrace.html")
+            code_desc = PASSWORD_ACTIONS[password]
+            location_info = get_location_info(request, lat_form, lon_form)
+            send_email(f"⚠️ Alerte Shadowgate\n{code_desc}", location_info)
+            return redirect("/biotrace")
 
         else:
             error = "❌ Mot de passe incorrect."
 
     return render_template("index.html", error=error)
 
+@app.route("/biotrace")
+def biotrace():
+    access_time = datetime.now().strftime("%d/%m/%Y à %H:%M")
+    return render_template("biotrace.html", access_time=access_time)
+
 @app.route("/flash", methods=["POST"])
 def flash_position():
     try:
-        data = request.get_json()
-        lat = data.get("lat", "")
-        lon = data.get("lon", "")
-        gmap = f"https://www.google.com/maps?q={lat},{lon}&z=18"
-        msg_text = f"📍 Carte flashée\nCoordonnées : {lat}, {lon}\n{gmap}"
-
-        msg = MIMEText(msg_text)
-        msg["Subject"] = "Flash position – Shadowgate"
-        msg["From"] = FROM_EMAIL
-        msg["To"] = TO_EMAIL
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(FROM_EMAIL, APP_PASSWORD)
-            server.send_message(msg)
-
-        return "ok", 200
+        data = json.loads(request.data)
+        lat = data.get("lat")
+        lon = data.get("lon")
+        if lat and lon:
+            link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
+            body = f"📍 Carte flashée\n📌 Coordonnées : {lat}, {lon}\n🔗 Lien Google Maps : {link}"
+            send_email("📩 Flash position – Shadowgate", body)
     except Exception as e:
-        print("Erreur flash position :", e)
-        return "fail", 500
+        print(f"[FLASH ERROR] {e}")
+    return "", 204
+
+def get_location_info(request, lat, lon):
+    if lat and lon:
+        link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
+        return f"✅ Coordonnées GPS confirmées\nLatitude : {lat}\nLongitude : {lon}\nLien : {link}"
+    else:
+        ip_raw = request.headers.get('X-Forwarded-For', request.remote_addr)
+        ip = ip_raw.split(',')[0].strip()
+        try:
+            geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
+            geo_data = geo_req.json()
+            loc = geo_data.get("loc", "")
+            city = geo_data.get("city", "N/A")
+            region = geo_data.get("region", "N/A")
+            country = geo_data.get("country", "N/A")
+            org = geo_data.get("org", "N/A")
+            latlon = f"Coordonnées : {loc}" if loc else ""
+            link = f"https://www.google.com/maps?q={loc}&z=18" if loc else ""
+            return f"❌ Coordonnées estimées via IP / FAI\nIP : {ip}\nVille : {city}, {region}, {country}\nFAI : {org}\n{latlon}\nLien : {link}"
+        except:
+            return f"🌐 Impossible d’obtenir la localisation\nIP : {ip}"
 
 if __name__ == "__main__":
     app.run(debug=True)
