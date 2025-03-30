@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accès sécurisé - Biotrace Labs</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-box {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        img {
+            width: 80px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        input[type="password"] {
+            padding: 10px;
+            width: 65%;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .toggle-btn {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #ddd;
+            cursor: pointer;
+        }
+        button[type="submit"] {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .error {
+            color: red;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <form method="POST" class="login-box">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Biotrace Logo">
+        <h2>🔒 Veuillez entrer le mot de passe</h2>
+        <div>
+            <input type="password" id="password" name="password" required>
+            <button type="button" class="toggle-btn" onclick="togglePassword()">👁️</button>
+        </div>
+        <button type="submit">Valider</button>
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+    </form>
+    <script>
+        function togglePassword() {
+            var input = document.getElementById("password");
+            input.type = input.type === "password" ? "text" : "password";
+        }
+    </script>
+</body>
+</html>
