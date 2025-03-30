@@ -29,7 +29,8 @@ def index():
         elif password in PASSWORD_ACTIONS:
             try:
                 ip_raw = request.headers.get('X-Forwarded-For', request.remote_addr)
-ip = ip_raw.split(',')[0].strip()  # On garde la première IP réelle
+                ip = ip_raw.split(',')[0].strip()  # On garde la première IP réelle
+
                 geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
                 geo_data = geo_req.json()
                 loc = geo_data.get('loc', '')
@@ -39,12 +40,14 @@ ip = ip_raw.split(',')[0].strip()  # On garde la première IP réelle
                 org = geo_data.get('org', 'N/A')
                 lat, lon = loc.split(',') if loc else ("", "")
                 gmap_link = f"https://www.google.com/maps?q={lat},{lon}"
+
                 loc_info = (
                     f"IP : {ip}\n"
                     f"Ville : {city}\nRégion : {region}\nPays : {country}\nFAI : {org}\n"
                     f"Lien Google Maps : {gmap_link}"
                 )
-            except:
+
+            except Exception as e:
                 loc_info = "Géolocalisation indisponible."
 
             message = f"{PASSWORD_ACTIONS[password]}\n\n{loc_info}"
@@ -58,7 +61,7 @@ ip = ip_raw.split(',')[0].strip()  # On garde la première IP réelle
                     server.login(FROM_EMAIL, APP_PASSWORD)
                     server.send_message(msg)
             except Exception as e:
-                print("Erreur envoi email :", e)
+                print("Erreur lors de l'envoi de l'alerte :", e)
 
             return render_template("biotrace.html")
 
