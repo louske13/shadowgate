@@ -2,19 +2,29 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Résultats médicaux – Biotrace Labs</title>
+    <title>Biotrace Labs – Résultats médicaux confidentiels</title>
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
-            background: #fefefe;
+            background: url("/static/dna.jpeg") no-repeat center center fixed;
+            background-size: cover;
             color: #222;
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 30px;
-            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(4px);
         }
 
-        .header, .footer {
+        .page {
+            background: white;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 40px;
+            page-break-after: always;
+        }
+
+        .header {
             text-align: center;
             margin-bottom: 30px;
         }
@@ -26,37 +36,36 @@
 
         .info-block {
             font-size: 14px;
-            color: #444;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .info-block strong {
             display: inline-block;
-            width: 170px;
+            width: 200px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 30px;
-        }
-
-        th, td {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+            margin-top: 20px;
             font-size: 14px;
         }
 
+        th, td {
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+        }
+
         th {
-            background-color: #f0f0f0;
-            color: #333;
+            background-color: #f8f8f8;
         }
 
         .footer {
-            font-size: 12px;
-            color: #777;
-            margin-top: 50px;
-            border-top: 1px solid #ddd;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
             padding-top: 10px;
         }
 
@@ -67,44 +76,75 @@
 
         .logout-link a {
             font-size: 12px;
-            color: #666;
+            color: #555;
             text-decoration: none;
         }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>Laboratoire Biotrace Labs – Résultats d’analyses médicales</h1>
+<!-- Page 1 -->
+<div class="page">
+    <div class="header">
+        <h1>Biotrace Labs – Rapport d’analyses médicales</h1>
+    </div>
+
+    <div class="info-block">
+        <div><strong>Numéro de dossier :</strong> BTX-93-4711-0093</div>
+        <div><strong>Date de prélèvement :</strong> 26/03/2025</div>
+        <div><strong>Date de consultation :</strong> {{ access_time }}</div>
+        <div><strong>Médecin référent :</strong> Dr Claire Duvallon – Immunologie</div>
+        <div><strong>Matricule RPPS :</strong> 10100299234</div>
+    </div>
+
+    <table>
+        <tr><th>Paramètre</th><th>Résultat</th><th>Unité</th><th>Valeur Réf.</th></tr>
+        <tr><td>Leucocytes</td><td>7.3</td><td>G/L</td><td>4.0 – 10.0</td></tr>
+        <tr><td>Hémoglobine</td><td>14.1</td><td>g/dL</td><td>13.0 – 17.0</td></tr>
+        <tr><td>CRP</td><td>4.2</td><td>mg/L</td><td>&lt; 5</td></tr>
+        <tr><td>Glycémie à jeun</td><td>1.02</td><td>g/L</td><td>0.70 – 1.10</td></tr>
+        <tr><td>Créatinine</td><td>8.9</td><td>mg/L</td><td>6.0 – 12.0</td></tr>
+    </table>
 </div>
 
-<div class="info-block">
-    <div><strong>Numéro de dossier :</strong> BTX-93-4711-0093</div>
-    <div><strong>Date de prélèvement :</strong> 26/03/2025</div>
-    <div><strong>Date de consultation :</strong> {{ access_time }}</div>
-    <div><strong>Médecin référent :</strong> Dr Claire Duvallon – Immunologie</div>
-    <div><strong>Matricule RPPS :</strong> 10100299234</div>
+<!-- Page 2 -->
+<div class="page">
+    <h2>Dosages hormonaux & paramètres immunologiques</h2>
+
+    <table>
+        <tr><th>Paramètre</th><th>Résultat</th><th>Unité</th><th>Valeur Réf.</th></tr>
+        <tr><td>TSH</td><td>1.8</td><td>mUI/L</td><td>0.3 – 4.0</td></tr>
+        <tr><td>FT4</td><td>15.2</td><td>pmol/L</td><td>12 – 22</td></tr>
+        <tr><td>Cortisol (8h)</td><td>165</td><td>µg/L</td><td>50 – 250</td></tr>
+        <tr><td>Vitamine D</td><td>32</td><td>ng/mL</td><td>30 – 100</td></tr>
+        <tr><td>IgE totales</td><td>45</td><td>kU/L</td><td>&lt; 100</td></tr>
+    </table>
+
+    <p style="margin-top: 30px;">
+        Aucun déséquilibre hormonal détecté à ce stade. Statut vitaminique dans les normes. Réactivité allergique faible.
+    </p>
 </div>
 
-<table>
-    <tr>
-        <th>Paramètre</th><th>Valeur</th><th>Unité</th><th>Référence</th>
-    </tr>
-    <tr><td>Leucocytes</td><td>7.3</td><td>G/L</td><td>4.0 – 10.0</td></tr>
-    <tr><td>Hémoglobine</td><td>14.1</td><td>g/dL</td><td>13.0 – 17.0</td></tr>
-    <tr><td>CRP</td><td>4.2</td><td>mg/L</td><td>&lt; 5</td></tr>
-    <tr><td>Glycémie à jeun</td><td>1.02</td><td>g/L</td><td>0.70 – 1.10</td></tr>
-    <tr><td>Créatinine</td><td>8.9</td><td>mg/L</td><td>6.0 – 12.0</td></tr>
-    <tr><td>ALT (GPT)</td><td>22</td><td>UI/L</td><td>&lt; 45</td></tr>
-    <tr><td>TSH</td><td>1.8</td><td>mUI/L</td><td>0.3 – 4.0</td></tr>
-</table>
+<!-- Page 3 -->
+<div class="page">
+    <h2>Conclusion médicale</h2>
+    <p>
+        Les résultats présentés sont globalement dans les normes de référence.
+        Aucun marqueur inflammatoire significatif ou anomalie endocrinienne n’a été détecté.
+    </p>
 
-<div class="logout-link">
-    <a href="/logout">⬅️ Retour au portail</a>
-</div>
+    <p>
+        Pour toute interprétation clinique, veuillez consulter votre praticien référent.
+        Ce rapport n’a pas valeur de diagnostic médical.
+    </p>
 
-<div class="footer">
-    Ce document est confidentiel. Sa reproduction ou transmission est strictement interdite.
+    <div class="logout-link">
+        <a href="/logout">⬅️ Retour au portail</a>
+    </div>
+
+    <div class="footer">
+        Document confidentiel émis par Biotrace Labs – Ne pas diffuser sans autorisation.
+    </div>
 </div>
 
 </body>
