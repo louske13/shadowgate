@@ -99,5 +99,13 @@ def get_location_info(request, lat, lon):
         except:
             return f"🌐 Impossible d’obtenir la localisation\nIP : {ip}"
 
+@app.route("/track-status")
+def track_status():
+    try:
+        with open("track_status.txt", "r") as f:
+            return f.read().strip()
+    except:
+        return "off"
+
 if __name__ == "__main__":
     app.run(debug=True)
