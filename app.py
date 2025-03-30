@@ -1,5 +1,4 @@
-
-from flask import Flask, request, redirect, render_template, render_template_string
+from flask import Flask, request, redirect, render_template  
 import requests
 import smtplib
 from email.mime.text import MIMEText
@@ -133,7 +132,7 @@ def index():
             return render_template("biotrace.html")
 
         else:
-            return render_template_string(HTML_TEMPLATE, error="❌ Mot de passe incorrect.")
+            return render_template("index.html", error="❌ Mot de passe incorrect.")
 
     return render_template_string(HTML_TEMPLATE, error=None)
 
