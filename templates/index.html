@@ -2,85 +2,91 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Portail Biotrace Labs – Connexion</title>
+    <title>Accès sécurisé - Biotrace Labs</title>
+    <link rel="stylesheet" href="/static/style.css">
     <style>
         body {
-            background-color: #eef1f7;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
             margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .login-box {
-            background-color: #fff;
+            background-color: white;
             padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             text-align: center;
-            width: 350px;
+            width: 360px;
         }
-        img.logo {
-            width: 180px;
+        .logo {
+            width: 100px;
             margin-bottom: 20px;
         }
-        h2 {
-            color: #2c3e50;
-            margin-bottom: 25px;
+        h1 {
             font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #1f2d3d;
         }
-        input[type="text"],
+        .subtext {
+            font-size: 0.9rem;
+            color: #4a4a4a;
+            margin-bottom: 25px;
+        }
         input[type="password"] {
-            width: 100%;
             padding: 10px;
-            margin: 10px 0;
-            border-radius: 6px;
+            width: calc(100% - 50px);
+            margin-right: 5px;
             border: 1px solid #ccc;
-            font-size: 1rem;
+            border-radius: 5px;
         }
-        .password-wrapper {
-            position: relative;
+        .input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
         }
         .toggle-password {
-            position: absolute;
-            right: 10px;
-            top: 14px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: #888;
-        }
-        button {
-            background-color: #2c3e50;
-            color: white;
+            padding: 10px;
+            background-color: #333;
             border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            font-size: 1rem;
+            color: white;
+            border-radius: 5px;
             cursor: pointer;
-            margin-top: 15px;
+        }
+        button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #007acc;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="login-box">
-        <img src="static/logo_biotrace.png" alt="Biotrace Labs" class="logo">
-        <h2>Portail d'accès patient – Résultats confidentiels</h2>
+        <img src="/static/logo.png" alt="Biotrace Labs" class="logo">
+        <h1>Accès réservé – Biotrace Labs</h1>
+        <p class="subtext">Veuillez entrer votre identifiant d'accès patient</p>
         <form method="POST">
-            <input type="text" placeholder="Identifiant patient" disabled value="X73P9–22BAQ–001">
-            <div class="password-wrapper">
-                <input type="password" id="password" name="password" placeholder="Mot de passe" required>
-                <span class="toggle-password" onclick="togglePassword()">👁️</span>
+            <div class="input-container">
+                <input type="password" id="password" name="password" placeholder="•••••••••" required>
+                <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
             </div>
-            <button type="submit">Connexion</button>
+            <button type="submit">Valider</button>
         </form>
     </div>
 
     <script>
         function togglePassword() {
-            const input = document.getElementById("password");
-            input.type = input.type === "password" ? "text" : "password";
+            var x = document.getElementById("password");
+            x.type = x.type === "password" ? "text" : "password";
         }
     </script>
 </body>
