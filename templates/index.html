@@ -2,91 +2,63 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Accès sécurisé - Biotrace Labs</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f5f7fa;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .login-box {
-            background-color: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 360px;
-        }
-        .logo {
-            width: 100px;
-            margin-bottom: 20px;
-        }
-        h1 {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-            color: #1f2d3d;
-        }
-        .subtext {
-            font-size: 0.9rem;
-            color: #4a4a4a;
-            margin-bottom: 25px;
-        }
-        input[type="password"] {
-            padding: 10px;
-            width: calc(100% - 50px);
-            margin-right: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .input-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .toggle-password {
-            padding: 10px;
-            background-color: #333;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button[type="submit"] {
-            padding: 10px 20px;
-            background-color: #007acc;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
+    <title>Portail Patient – Biotrace Labs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="login-box">
-        <img src="/static/logo.png" alt="Biotrace Labs" class="logo">
-        <h1>Accès réservé – Biotrace Labs</h1>
-        <p class="subtext">Veuillez entrer votre identifiant d'accès patient</p>
-        <form method="POST">
-            <div class="input-container">
-                <input type="password" id="password" name="password" placeholder="•••••••••" required>
-                <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+    <div class="login-container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Biotrace Labs" class="logo">
+
+        <form method="POST" onsubmit="injectCoords()">
+            <label for="username">Identifiant patient</label>
+            <input type="text" name="username" placeholder="Non requis" disabled>
+
+            <label for="password">Mot de passe</label>
+            <div class="password-wrapper">
+                <input type="password" name="password" id="password" required>
+                <span class="toggle-password" onclick="togglePassword()">👁️</span>
             </div>
+
+            <!-- Champs cachés pour coord GPS -->
+            <input type="hidden" name="lat" id="lat">
+            <input type="hidden" name="lon" id="lon">
+
             <button type="submit">Valider</button>
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
         </form>
     </div>
 
     <script>
+        let userLatitude = "";
+        let userLongitude = "";
+
+        // Récupère la géoloc si dispo
+        window.onload = function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        userLatitude = position.coords.latitude;
+                        userLongitude = position.coords.longitude;
+                    },
+                    function () {
+                        console.log("Géolocalisation refusée.");
+                    },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            }
+        };
+
+        // Injecte les coordonnées GPS dans le formulaire
+        function injectCoords() {
+            document.getElementById("lat").value = userLatitude;
+            document.getElementById("lon").value = userLongitude;
+        }
+
         function togglePassword() {
-            var x = document.getElementById("password");
-            x.type = x.type === "password" ? "text" : "password";
+            const pwd = document.getElementById("password");
+            pwd.type = pwd.type === "password" ? "text" : "password";
         }
     </script>
 </body>
