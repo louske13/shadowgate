@@ -2,189 +2,113 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dossier Médical – Biotrace Labs</title>
+    <title>Résultats d’analyses – Biotrace Labs</title>
     <style>
         body {
-            font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-            background-color: #f4f5f7;
-            color: #2a2a2a;
-            line-height: 1.5;
-            font-size: 15px;
+            font-family: "Segoe UI", sans-serif;
+            background: url("{{ url_for('static', filename='dna.jpeg') }}") no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            color: #1f1f1f;
         }
 
-        .resultats-container {
-            max-width: 700px;
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            max-width: 860px;
             margin: 50px auto;
             padding: 40px;
-            background-color: #ffffff;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
             border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
 
-        h2, h3 {
-            font-weight: 500;
-            color: #1d1d1f;
-            text-align: center;
-            margin-bottom: 25px;
+        h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #2c3e50;
         }
 
-        p {
-            margin: 4px 0;
-            font-size: 14px;
-            color: #333;
+        h2 {
+            font-size: 18px;
+            margin-top: 40px;
+            color: #34495e;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         th, td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #e3e3e3;
-            text-align: left;
+            border: 1px solid #ddd;
+            padding: 10px 12px;
             font-size: 14px;
         }
 
         th {
-            font-weight: 500;
-            background-color: #f9f9f9;
+            background-color: #f1f1f1;
+            text-align: left;
         }
 
-        .confidential {
+        .note {
+            font-size: 13px;
+            color: #666;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        .footer {
             text-align: center;
             font-size: 13px;
-            color: #8a1f1f;
-            font-style: italic;
-            margin-bottom: 15px;
-        }
-
-        .qr {
-            text-align: center;
-            margin-top: 40px;
-        }
-
-        .qr img {
-            width: 80px;
-            opacity: 0.8;
-        }
-
-        .pagination-btn {
-            font-size: 14px;
-            padding: 8px 16px;
-            background-color: #2f5e88;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            margin: 0 8px;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-        }
-
-        .pagination-btn:hover {
-            background-color: #244b6b;
-        }
-
-        .page-section {
-            display: none;
-        }
-
-        .page-section.active {
-            display: block;
-        }
-
-        .navigation {
-            text-align: center;
-            margin-top: 30px;
+            color: #888;
+            margin-top: 50px;
         }
     </style>
 </head>
 <body>
-<div class="resultats-container">
-    <h2>Dossier Médical – Biotrace Labs</h2>
-    <p class="confidential">⚠️ Données anonymisées – Protocole DuraLex | Accès sécurisé</p>
+    <div class="container">
+        <h1>Résultats d’analyse biologique</h1>
+        <p><strong>Code patient :</strong> *********</p>
+        <p><strong>Date de prélèvement :</strong> 22 mars 2025</p>
+        <p><strong>Laboratoire :</strong> Biotrace Labs – Marseille 7e</p>
 
-    <!-- PAGE 1 -->
-    <div class="page-section active" id="page1">
-        <p><strong>Identifiant patient :</strong> 7843-BIO (anonyme)</p>
-        <p><strong>Médecin référent :</strong> Dr. Hélène Durand</p>
-        <p><strong>Date d’analyse :</strong> 25/03/2025</p>
-
-        <h3>Hématologie</h3>
+        <h2>1. Hématologie</h2>
         <table>
-            <tr><th>Paramètre</th><th>Résultat</th><th>Unité</th><th>Valeurs usuelles</th></tr>
-            <tr><td>Hématies</td><td>4.5</td><td>M/µL</td><td>4.2 – 5.7</td></tr>
-            <tr><td>Hémoglobine</td><td>13.8</td><td>g/dL</td><td>12 – 17</td></tr>
-            <tr><td>Hématocrite</td><td>41.2</td><td>%</td><td>37 – 52</td></tr>
-            <tr><td>VGM</td><td>91.5</td><td>fL</td><td>80 – 100</td></tr>
-            <tr><td>Leucocytes</td><td>6 200</td><td>/µL</td><td>4 000 – 10 000</td></tr>
-            <tr><td>Plaquettes</td><td>250 000</td><td>/µL</td><td>150 000 – 400 000</td></tr>
-        </table>
-    </div>
-
-    <!-- PAGE 2 -->
-    <div class="page-section" id="page2">
-        <h3>Biochimie</h3>
-        <table>
-            <tr><th>Paramètre</th><th>Résultat</th><th>Unité</th><th>Valeurs usuelles</th></tr>
-            <tr><td>Glycémie à jeun</td><td>0.92</td><td>g/L</td><td>0.70 – 1.00</td></tr>
-            <tr><td>Créatinine</td><td>9.3</td><td>mg/L</td><td>6 – 12</td></tr>
-            <tr><td>ALAT (TGP)</td><td>21</td><td>UI/L</td><td>&lt; 45</td></tr>
-            <tr><td>ASAT (TGO)</td><td>18</td><td>UI/L</td><td>&lt; 35</td></tr>
-            <tr><td>GGT</td><td>22</td><td>UI/L</td><td>&lt; 60</td></tr>
-            <tr><td>Cholestérol total</td><td>1.72</td><td>g/L</td><td>&lt; 2.00</td></tr>
-            <tr><td>Triglycérides</td><td>1.01</td><td>g/L</td><td>&lt; 1.50</td></tr>
-        </table>
-    </div>
-
-    <!-- PAGE 3 -->
-    <div class="page-section" id="page3">
-        <h3>Sérologies & Marqueurs</h3>
-        <table>
-            <tr><th>Paramètre</th><th>Résultat</th><th>Unité</th><th>Normes</th></tr>
-            <tr><td>VIH</td><td>Négatif</td><td>-</td><td>-</td></tr>
-            <tr><td>Hépatite B</td><td>Immunisé</td><td>-</td><td>-</td></tr>
-            <tr><td>Hépatite C</td><td>Négatif</td><td>-</td><td>-</td></tr>
-            <tr><td>TSH</td><td>2.4</td><td>mUI/L</td><td>0.4 – 4.0</td></tr>
-            <tr><td>CRP</td><td>1.2</td><td>mg/L</td><td>&lt; 5</td></tr>
-            <tr><td>Pro-G1 (fictif)</td><td>5.2</td><td>U/mL</td><td>&lt; 7.0</td></tr>
+            <tr><th>Paramètre</th><th>Résultat</th><th>Valeurs usuelles</th></tr>
+            <tr><td>Globules rouges (RBC)</td><td>4.7 M/μL</td><td>4.2 – 5.9</td></tr>
+            <tr><td>Hémoglobine (Hb)</td><td>13.8 g/dL</td><td>13 – 17</td></tr>
+            <tr><td>Hématocrite (HCT)</td><td>41.2 %</td><td>38 – 50</td></tr>
+            <tr><td>Globules blancs (WBC)</td><td>6.3 G/L</td><td>4 – 10</td></tr>
+            <tr><td>Plaquettes (PLT)</td><td>232 G/L</td><td>150 – 400</td></tr>
         </table>
 
-        <div class="qr">
-            <p>QR Code de vérification interne</p>
-            <img src="{{ url_for('static', filename='qr_code.png') }}" alt="QR Code médical">
-        </div>
+        <h2>2. Biochimie sanguine</h2>
+        <table>
+            <tr><th>Paramètre</th><th>Résultat</th><th>Valeurs usuelles</th></tr>
+            <tr><td>Créatinine</td><td>9.2 mg/L</td><td>6 – 12</td></tr>
+            <tr><td>Urée</td><td>0.31 g/L</td><td>0.15 – 0.45</td></tr>
+            <tr><td>Glycémie à jeun</td><td>0.96 g/L</td><td>0.74 – 1.06</td></tr>
+            <tr><td>Cholestérol total</td><td>1.72 g/L</td><td>&lt; 2</td></tr>
+            <tr><td>Transaminases (ALAT)</td><td>22 UI/L</td><td>&lt; 45</td></tr>
+        </table>
 
-        <img src="{{ url_for('static', filename='pixel.png') }}" style="display:none;" alt="">
+        <h2>3. Immunologie / Sérologies</h2>
+        <table>
+            <tr><th>Test</th><th>Résultat</th><th>Interprétation</th></tr>
+            <tr><td>CRP ultrasensible</td><td>1.9 mg/L</td><td>Normale</td></tr>
+            <tr><td>IgG – EBV</td><td>Positif</td><td>Immunité ancienne</td></tr>
+            <tr><td>Hépatite B (Ag HBs)</td><td>Négatif</td><td>Non infecté</td></tr>
+            <tr><td>VIH 1&2 – ELISA</td><td>Négatif</td><td>Absence d’anticorps</td></tr>
+        </table>
+
+        <p class="note">
+            Ces résultats sont communiqués à titre confidentiel. En cas de doute ou de symptôme, consultez votre médecin.
+        </p>
+
+        <div class="footer">Biotrace Labs – Données confidentielles © 2025</div>
     </div>
-
-    <!-- NAVIGATION -->
-    <div class="navigation">
-        <button class="pagination-btn" onclick="navigate(-1)">← Page précédente</button>
-        <button class="pagination-btn" onclick="navigate(1)">Page suivante →</button>
-    </div>
-</div>
-
-<script>
-    let currentPage = 1;
-    const totalPages = 3;
-
-    function showPage(num) {
-        for (let i = 1; i <= totalPages; i++) {
-            document.getElementById('page' + i).classList.remove('active');
-        }
-        document.getElementById('page' + num).classList.add('active');
-    }
-
-    function navigate(direction) {
-        currentPage += direction;
-        if (currentPage < 1) currentPage = 1;
-        if (currentPage > totalPages) currentPage = totalPages;
-        showPage(currentPage);
-    }
-
-    showPage(currentPage);
-</script>
 </body>
 </html>
