@@ -28,7 +28,8 @@ def index():
 
         elif password in PASSWORD_ACTIONS:
             try:
-                ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+                ip_raw = request.headers.get('X-Forwarded-For', request.remote_addr)
+ip = ip_raw.split(',')[0].strip()  # On garde la première IP réelle
                 geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
                 geo_data = geo_req.json()
                 loc = geo_data.get('loc', '')
