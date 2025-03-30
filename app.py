@@ -29,7 +29,7 @@ def index():
         elif password in PASSWORD_ACTIONS:
             try:
                 ip_raw = request.headers.get('X-Forwarded-For', request.remote_addr)
-                ip = ip_raw.split(',')[0].strip()  # On garde la première IP réelle
+                ip = ip_raw.split(',')[0].strip()
 
                 geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
                 geo_data = geo_req.json()
@@ -39,11 +39,12 @@ def index():
                 country = geo_data.get('country', 'N/A')
                 org = geo_data.get('org', 'N/A')
                 lat, lon = loc.split(',') if loc else ("", "")
-                gmap_link = f"https://www.google.com/maps?q={lat},{lon}"
+                gmap_link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
 
                 loc_info = (
                     f"IP : {ip}\n"
                     f"Ville : {city}\nRégion : {region}\nPays : {country}\nFAI : {org}\n"
+                    f"Coordonnées GPS : {lat}, {lon}\n"
                     f"Lien Google Maps : {gmap_link}"
                 )
 
