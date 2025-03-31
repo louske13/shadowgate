@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, url_for
 from datetime import datetime, timedelta
 import smtplib
 import requests
@@ -7,13 +7,11 @@ import json
 import secrets
 
 app = Flask(__name__)
-app.secret_key = "shadowgate2025"
+app.secret_key = "shadowgate2025"  # Ne jamais exposer en public
 
 FROM_EMAIL = "mzo.fpa@gmail.com"
 APP_PASSWORD = "jevt qvas vrpj bveo"
 TO_EMAIL = "alertimediate@gmail.com"
-
-NOTION_URL = "https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2"
 
 PASSWORD_ACTIONS = {
     "Ther@pi1": "🟢 Captif volontairement (mission infiltrée assumée)",
@@ -28,6 +26,7 @@ def send_email(subject, body):
     msg["Subject"] = subject
     msg["From"] = FROM_EMAIL
     msg["To"] = TO_EMAIL
+
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(FROM_EMAIL, APP_PASSWORD)
@@ -61,23 +60,32 @@ def index():
     error = None
     lat_form = request.form.get("lat", "")
     lon_form = request.form.get("lon", "")
+
     if request.method == "POST":
         password = request.form.get("password")
+
         if password == "13007":
             location_info = get_location_info(request, lat_form, lon_form)
             send_email("📍 Coordonnées consultées – Code 13007", location_info)
-            return redirect("/confidentiel")
+            session.clear()
+            return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
+
         elif password in PASSWORD_ACTIONS:
             code_desc = PASSWORD_ACTIONS[password]
             location_info = get_location_info(request, lat_form, lon_form)
             message = f"{code_desc}\n\n{location_info}"
             send_email("⚠️ Alerte Shadowgate", message)
-            token = secrets.token_urlsafe(16)
-            session["access_token"] = token
+
+            # 🧠 Session protégée
+            access_token = secrets.token_urlsafe(16)
+            session["access_token"] = access_token
             session["access_time"] = datetime.utcnow().isoformat()
-            return redirect(f"/biotrace?token={token}")
+
+            return redirect(url_for('biotrace', token=access_token))
+
         else:
             error = "❌ Mot de passe incorrect."
+
     return render_template("index.html", error=error)
 
 @app.route("/biotrace")
@@ -89,14 +97,12 @@ def biotrace():
     if not token or token != session_token:
         return redirect("/")
 
+    # 🔐 Expiration après 10 minutes
     if access_time_str:
         access_time = datetime.fromisoformat(access_time_str)
         if datetime.utcnow() - access_time > timedelta(minutes=10):
             session.clear()
             return redirect("/")
-
-    # Invalide la session dès le premier affichage
-    session.clear()
 
     access_time = datetime.now().strftime("%d/%m/%Y à %H:%M")
     return render_template("biotrace.html", access_time=access_time)
@@ -127,17 +133,6 @@ def track_status():
             return f.read().strip()
     except:
         return "off"
-
-@app.route("/confidentiel")
-def proxy_notion():
-    try:
-        response = requests.get(NOTION_URL, headers={"User-Agent": "Mozilla/5.0"})
-        if response.status_code == 200:
-            return response.text
-        else:
-            return "Erreur de chargement Notion.", 500
-    except Exception as e:
-        return f"Erreur Notion : {e}", 500
 
 if __name__ == "__main__":
     app.run(debug=True)
