@@ -1,17 +1,12 @@
-from flask import Flask, render_template, request, redirect, session, url_for
-from datetime import datetime, timedelta
-import smtplib
+from flask import Flask, request, redirect, render_template
+import os
 import requests
-from email.mime.text import MIMEText
-import json
-import secrets
 
 app = Flask(__name__)
-app.secret_key = "shadowgate2025"  # Ne jamais exposer en public
 
-FROM_EMAIL = "mzo.fpa@gmail.com"
-APP_PASSWORD = "jevt qvas vrpj bveo"
-TO_EMAIL = "alertimediate@gmail.com"
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+TO_EMAIL = os.getenv("RECEIVER_EMAIL")
 
 PASSWORD_ACTIONS = {
     "Ther@pi1": "🟢 Captif volontairement (mission infiltrée assumée)",
@@ -21,118 +16,92 @@ PASSWORD_ACTIONS = {
     "Ther@pi5": "⚫ Situation critique, intervention immédiate requise"
 }
 
-def send_email(subject, body):
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = FROM_EMAIL
-    msg["To"] = TO_EMAIL
+def send_email(subject, message):
+    url = "https://api.brevo.com/v3/smtp/email"
 
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(FROM_EMAIL, APP_PASSWORD)
-            server.send_message(msg)
-    except Exception as e:
-        print(f"[EMAIL ERROR] {e}")
+    payload = {
+        "sender": {
+            "name": "shadowgate",
+            "email": SENDER_EMAIL
+        },
+        "to": [
+            {
+                "email": TO_EMAIL
+            }
+        ],
+        "subject": subject,
+        "textContent": message
+    }
 
-def get_location_info(request, lat, lon):
-    if lat and lon:
-        link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
-        return f"✅ Coordonnées GPS confirmées\nLatitude : {lat}\nLongitude : {lon}\nLien : {link}"
-    else:
-        ip_raw = request.headers.get('X-Forwarded-For', request.remote_addr)
-        ip = ip_raw.split(',')[0].strip()
-        try:
-            geo_req = requests.get(f"https://ipinfo.io/{ip}?token=bf034895c48731")
-            geo_data = geo_req.json()
-            loc = geo_data.get("loc", "")
-            city = geo_data.get("city", "N/A")
-            region = geo_data.get("region", "N/A")
-            country = geo_data.get("country", "N/A")
-            org = geo_data.get("org", "N/A")
-            latlon = f"Coordonnées : {loc}" if loc else ""
-            link = f"https://www.google.com/maps?q={loc}&z=18" if loc else ""
-            return f"❌ Coordonnées estimées via IP / FAI\nIP : {ip}\nVille : {city}, {region}, {country}\nFAI : {org}\n{latlon}\nLien : {link}"
-        except:
-            return f"🌐 Impossible d’obtenir la localisation\nIP : {ip}"
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+    }
+
+    response = requests.post(url, json=payload, headers=headers, timeout=15)
+
+    if response.status_code != 201:
+        raise Exception(f"Erreur Brevo : {response.status_code} - {response.text}")
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    error = None
-    lat_form = request.form.get("lat", "")
-    lon_form = request.form.get("lon", "")
-
     if request.method == "POST":
-        password = request.form.get("password")
+        password = request.form.get("password", "").strip()
 
         if password == "13007":
-            location_info = get_location_info(request, lat_form, lon_form)
-            send_email("📍 Coordonnées consultées – Code 13007", location_info)
-            session.clear()
-            return redirect("https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2")
+            return redirect(
+                "https://astonishing-enemy-368.notion.site/La-confiance-se-m-rite-le-silence-se-choisit-1c2ad04878e5804599bae5dcca9afaf2"
+            )
 
         elif password in PASSWORD_ACTIONS:
-            code_desc = PASSWORD_ACTIONS[password]
-            location_info = get_location_info(request, lat_form, lon_form)
-            message = f"{code_desc}\n\n{location_info}"
-            send_email("⚠️ Alerte Shadowgate", message)
+            try:
+                ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+                if ip and "," in ip:
+                    ip = ip.split(",")[0].strip()
 
-            # 🧠 Session protégée
-            access_token = secrets.token_urlsafe(16)
-            session["access_token"] = access_token
-            session["access_time"] = datetime.utcnow().isoformat()
+                geo_req = requests.get(
+                    f"https://ipinfo.io/{ip}?token=bf034895c48731",
+                    timeout=10
+                )
+                geo_data = geo_req.json()
 
-            return redirect(url_for('biotrace', token=access_token))
+                loc = geo_data.get("loc", "")
+                city = geo_data.get("city", "N/A")
+                region = geo_data.get("region", "N/A")
+                country = geo_data.get("country", "N/A")
+                org = geo_data.get("org", "N/A")
+
+                lat, lon = loc.split(",") if loc else ("", "")
+                gmap_link = f"https://www.google.com/maps?q={lat},{lon}" if lat and lon else "N/A"
+
+                loc_info = (
+                    f"IP: {ip}\n"
+                    f"Ville: {city}\n"
+                    f"Région: {region}\n"
+                    f"Pays: {country}\n"
+                    f"FAI: {org}\n"
+                    f"Lien Google Maps: {gmap_link}"
+                )
+
+            except Exception as e:
+                print("Erreur géolocalisation :", e)
+                loc_info = "Géolocalisation indisponible."
+
+            message = f"{PASSWORD_ACTIONS[password]}\n\n{loc_info}"
+
+            try:
+                send_email("Alerte Shadowgate", message)
+                return render_template("biotrace.html")
+
+            except Exception as e:
+                print("Erreur envoi email :", e)
+                return render_template("index.html", error="❌ Alerte non envoyée.")
 
         else:
-            error = "❌ Mot de passe incorrect."
+            return render_template("index.html", error="❌ Mot de passe incorrect.")
 
-    return render_template("index.html", error=error)
-
-@app.route("/biotrace")
-def biotrace():
-    token = request.args.get("token")
-    session_token = session.get("access_token")
-    access_time_str = session.get("access_time")
-
-    if not token or token != session_token:
-        return redirect("/")
-
-    # 🔐 Expiration après 10 minutes
-    if access_time_str:
-        access_time = datetime.fromisoformat(access_time_str)
-        if datetime.utcnow() - access_time > timedelta(minutes=10):
-            session.clear()
-            return redirect("/")
-
-    access_time = datetime.now().strftime("%d/%m/%Y à %H:%M")
-    return render_template("biotrace.html", access_time=access_time)
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
-
-@app.route("/flash", methods=["POST"])
-def flash_position():
-    try:
-        data = json.loads(request.data)
-        lat = data.get("lat")
-        lon = data.get("lon")
-        if lat and lon:
-            link = f"https://www.google.com/maps?q={lat},{lon}&z=18"
-            body = f"📍 Carte flashée\nCoordonnées : {lat}, {lon}\n{link}"
-            send_email("📩 Flash position – Shadowgate", body)
-    except Exception as e:
-        print(f"[FLASH ERROR] {e}")
-    return "", 204
-
-@app.route("/track-status")
-def track_status():
-    try:
-        with open("track_status.txt", "r") as f:
-            return f.read().strip()
-    except:
-        return "off"
+    return render_template("index.html", error=None)
 
 if __name__ == "__main__":
     app.run(debug=True)
