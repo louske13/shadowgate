@@ -16,7 +16,10 @@ PASSWORD_ACTIONS = {
     "Ther@pi5": "⚫ Situation critique, intervention immédiate requise"
 }
 
+
 def send_email(subject, message):
+    print("🔥 ENVOI EMAIL EN COURS")  # ← ICI LE PRINT (déjà placé pour toi)
+
     url = "https://api.brevo.com/v3/smtp/email"
 
     payload = {
@@ -41,13 +44,19 @@ def send_email(subject, message):
 
     response = requests.post(url, json=payload, headers=headers, timeout=15)
 
+    print("📩 STATUS CODE :", response.status_code)   # ← très important
+    print("📩 RESPONSE :", response.text)            # ← très important
+
     if response.status_code != 201:
         raise Exception(f"Erreur Brevo : {response.status_code} - {response.text}")
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         password = request.form.get("password", "").strip()
+
+        print("🔐 PASSWORD SAISI :", password)  # ← pour vérifier
 
         if password == "13007":
             return redirect(
@@ -55,6 +64,8 @@ def index():
             )
 
         elif password in PASSWORD_ACTIONS:
+            print("✅ PASSWORD RECONNU")  # ← vérification
+
             try:
                 ip = request.headers.get("X-Forwarded-For", request.remote_addr)
                 if ip and "," in ip:
@@ -95,13 +106,15 @@ def index():
                 return render_template("biotrace.html")
 
             except Exception as e:
-                print("Erreur envoi email :", e)
+                print("❌ ERREUR ENVOI EMAIL :", e)
                 return render_template("index.html", error="❌ Alerte non envoyée.")
 
         else:
+            print("❌ PASSWORD INCORRECT")
             return render_template("index.html", error="❌ Mot de passe incorrect.")
 
     return render_template("index.html", error=None)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
